@@ -74,15 +74,40 @@ func rwtest(){
 	}
 }
 
+func mapsliceTest(){
+	oneMapSliece := make(map[int][]string)
+	for i:=0;i<10;i++{
+		value,have :=oneMapSliece[1]
+		if false == have{
+			value = make([]string,0)
+		}
+		value = append(value,"test")
+		oneMapSliece[1]=value
 
+	}
 
+	seelog.Tracef("oneMapSlice=%v,len(oneMapSlice)",oneMapSliece,len(oneMapSliece[1]))
+}
+
+func mapsliceTest2(){
+	oneMapSliece := make(map[int][]string)
+	for i:=0;i<10;i++{
+		_,have :=oneMapSliece[1]
+		if false == have{
+			oneMapSliece[1] = make([]string,0)
+		}
+		oneMapSliece[1] = append(oneMapSliece[1],"test")
+
+	}
+
+	seelog.Tracef("oneMapSlice=%v,len(oneMapSlice)",oneMapSliece,len(oneMapSliece[1]))
+}
 
 
 func main(){
 	LOG_INIT("test_log_conf.xml")
 	defer seelog.Flush()
-	rwtest()
-	<-time.After(10000*time.Second)
-	seelog.Tracef("enter")
+	// rwtest()
+	mapsliceTest2()
 }
 
