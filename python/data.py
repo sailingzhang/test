@@ -17,8 +17,8 @@ import matplotlib.pyplot as plt
 
 class mnist_data:
     def __init__(self):
-        traindata = list(mnist_diy.read(dataset="training",path="../notebookdata"))
-        testdata =list(mnist_diy.read(dataset="testing",path="../notebookdata"))
+        traindata = list(mnist_diy.read(dataset="training",path="../public"))
+        testdata =list(mnist_diy.read(dataset="testing",path="../public"))
         y_train =[x[0] for x in traindata]
         X_train =[x[1] for x in traindata]
         y_test =[x[0] for x in testdata]
