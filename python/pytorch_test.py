@@ -34,21 +34,26 @@ class MyModule(nn.Module):
 
     def fit(self,X,y):
         logging.debug("X'shape={},y'shape={}".format(X.shape,y.shape))
-        self.optimizer = torch.optim.SGD(self.parameters(), lr=1e-4, momentum=0.9)
+        self.optimizer = torch.optim.SGD(self.parameters(), lr=0.05, momentum=0.9)
         for param in self.parameters():
             logging.debug("befor param={}".format(param))
-        for i in range(2):
-            X_tensor = torch.FloatTensor(X)
-            y_tensor = torch.LongTensor(y)
-            logging.debug("type(X_tensor)={},type(y_tensor)={}".format(X_tensor,y_tensor))
-            y_pred = self.pipe(X_tensor)
-            logging.debug("y_pred={}".format(y_pred))
-            loss = self.criterion(y_pred,y_tensor)
-            self.optimizer.zero_grad()
-            loss.backward()
-            self.optimizer.step()
-        for param in self.parameters():
-            logging.debug("after param={}".format(param))
+        for i in range(200):
+            rand_index = np.random.permutation(len(X))
+            X_bachs = np.array_split(X[rand_index],10)
+            y_bachs = np.array_split(y[rand_index],10)
+            for xbach,ybach in  zip(X_bachs,y_bachs):
+                X_tensor = torch.FloatTensor(xbach)
+                y_tensor = torch.LongTensor(ybach)
+                # logging.debug("type(X_tensor)={},type(y_tensor)={}".format(X_tensor,y_tensor))
+                y_pred = self.pipe(X_tensor)
+                logging.debug("y_pred={}".format(y_pred))
+                loss = self.criterion(y_pred,y_tensor)
+                logging.debug("loss={}".format(loss))
+                self.optimizer.zero_grad()
+                loss.backward()
+                self.optimizer.step()
+            for param in self.parameters():
+                logging.debug("after param={}".format(param))
     
 
 def mymoduleTest():
