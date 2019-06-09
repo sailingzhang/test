@@ -14,6 +14,8 @@ def gym_test1():
         env.render()
         stepRsp=env.step(env.action_space.sample()) # take a random action
         logging.debug("i={},setpRsp={}".format(i,stepRsp))
+        # observation = env.observation()
+        # logging.debug("observation={}".format(observation))
     env.close()
 
 
@@ -40,6 +42,27 @@ def mywrapperTest():
             # pass
             break
     logging.debug("reward get={}".format(total_reward))
+
+
+class ObservationWarpperClass(gym.ObservationWrapper):
+    def __init__(self,env):
+        super().__init__(env)
+    def observation(self,obs):
+        logging.debug("obs={},type={}".format(obs,type(obs)))
+        return obs
+
+def myobservationWrapperTest():
+    env = ObservationWarpperClass(gym.make('CartPole-v0'))
+    env.reset()
+    total_reward =0.0
+    while True:
+        env.render()
+        obs,reward,done,_ = env.step(0)
+        total_reward += reward
+        if done:
+            # pass
+            break
+    logging.debug("exit,reward={}".format(total_reward))
 
 
 def torchGradientTest():
@@ -86,8 +109,9 @@ def mymoduleTest():
 
 if __name__ == '__main__':
     log_init("gymtest.log")
+    myobservationWrapperTest()
     # gym_test1()
     # mywrapperTest()
     # torchGradientTest()
     # nntest()
-    mymoduleTest()
+    # mymoduleTest()
