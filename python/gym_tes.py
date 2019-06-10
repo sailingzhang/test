@@ -61,9 +61,25 @@ def nntest():
 
     logging.debug("s={}".format(s(v)))
 
+class MyModule(nn.Module):
+    def __init__(self,num_inputs,num_classes,droup_prob = 0.3):
+        super().__init__()
+        self.pipe = nn.Sequential(
+            nn.Linear(num_inputs,num_classes),
+            nn.ReLU()
+        )
+
+def mymoduleTest():
+    net = MyModule(num_inputs=2,num_classes=5)
+    v = torch.FloatTensor([[1,2,3,4,5],[5,4,3,2,1]])
+    # out =net(v)
+    out = net.pipe(v)
+    logging.debug("out={}".format(out))        
+
 if __name__ == '__main__':
     log_init("gymtest.log")
     # gym_test1()
     # mywrapperTest()
     # torchGradientTest()
     nntest()
+    # mymoduleTest()
