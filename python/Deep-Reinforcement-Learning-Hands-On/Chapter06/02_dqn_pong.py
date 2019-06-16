@@ -13,6 +13,10 @@ import torch.optim as optim
 
 from tensorboardX import SummaryWriter
 
+import sys
+sys.path.append("../../")
+import logging
+from log_init import log_init
 
 DEFAULT_ENV_NAME = "PongNoFrameskip-v4"
 MEAN_REWARD_BOUND = 19.5
@@ -72,6 +76,7 @@ class Agent:
             action = int(act_v.item())
 
         # do step in the environment
+        self.env.render()
         new_state, reward, is_done, _ = self.env.step(action)
         self.total_reward += reward
 
@@ -89,20 +94,24 @@ def calc_loss(batch, net, tgt_net, device="cpu"):
 
     states_v = torch.tensor(states).to(device)
     next_states_v = torch.tensor(next_states).to(device)
-    actions_v = torch.tensor(actions).to(device)
+    actions_v = torch.tensor(actions).to(device).long()
     rewards_v = torch.tensor(rewards).to(device)
-    done_mask = torch.ByteTensor(dones).to(device)
+    done_mask = torch.ByteTensor(dones).to(device).long()
+    logging.debug("state_v'size={}  actions_v'size={}".format(states_v.size(),actions_v.size()))
 
     state_action_values = net(states_v).gather(1, actions_v.unsqueeze(-1)).squeeze(-1)
+    logging.debug("get state_action_value,size={}".format(state_action_values.size()))
     next_state_values = tgt_net(next_states_v).max(1)[0]
     next_state_values[done_mask] = 0.0
     next_state_values = next_state_values.detach()
 
-    expected_state_action_values = next_state_values * GAMMA + rewards_v
+    expected_state_action_values = (next_state_values * GAMMA + rewards_v)
     return nn.MSELoss()(state_action_values, expected_state_action_values)
 
 
 if __name__ == "__main__":
+    log_init("../../02_dqn_pong.log")
+    logging.debug("enter")
     parser = argparse.ArgumentParser()
     parser.add_argument("--cuda", default=False, action="store_true", help="Enable cuda")
     parser.add_argument("--env", default=DEFAULT_ENV_NAME,
