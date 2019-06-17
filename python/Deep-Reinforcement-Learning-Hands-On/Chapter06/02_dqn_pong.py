@@ -74,6 +74,7 @@ class Agent:
             q_vals_v = net(state_v)
             _, act_v = torch.max(q_vals_v, dim=1)
             action = int(act_v.item())
+            logging.debug("type(act_v)={},act_v'size={}".format(type(act_v),act_v.size()))
 
         # do step in the environment
         self.env.render()
@@ -123,6 +124,7 @@ if __name__ == "__main__":
 
     env = wrappers.make_env(args.env)
 
+    logging.debug("env.shape={},env.n={}".format(env.observation_space.shape,env.action_space.n))
     net = dqn_model.DQN(env.observation_space.shape, env.action_space.n).to(device)
     tgt_net = dqn_model.DQN(env.observation_space.shape, env.action_space.n).to(device)
     writer = SummaryWriter(comment="-" + args.env)
