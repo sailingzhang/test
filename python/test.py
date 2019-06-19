@@ -46,6 +46,13 @@ def squeezeTest():
     asq3 = asq2.unsqueeze(2)
     logging.debug("asq3={}".format(asq3))
     
+def maxTest():
+    one = torch.Tensor([[2,3,1,5],[3,3,5,1]])
+    one_0 =one.max(0)
+    one_1 = one.max(1)
+    logging.debug("one_0={},one_1={}".format(one_0,one_1))
+
+
 	
 
 if __name__ == "__main__":
@@ -53,4 +60,5 @@ if __name__ == "__main__":
     # filterTest()
     # yieldtest()
     # gatherTest()
-    squeezeTest()
+    # squeezeTest()
+    maxTest()

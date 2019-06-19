@@ -23,7 +23,7 @@ class MyModule(nn.Module):
             nn.ReLU(),
             nn.Linear(100,num_classes),
             # nn.ReLU(),
-            # nn.Softmax(dim=1)
+            nn.Softmax(dim=1)
         )
     def predict(self, X):
         X_tensor = torch.FloatTensor(X)
@@ -36,8 +36,8 @@ class MyModule(nn.Module):
 
     def fit(self,X,y):
         logging.debug("X'shape={},y'shape={}".format(X.shape,y.shape))
-        # self.optimizer = torch.optim.SGD(self.parameters(), lr=0.05, momentum=0.9)
-        self.optimizer =torch.optim.Adam(params=self.parameters(), lr=0.05)
+        self.optimizer = torch.optim.SGD(self.parameters(), lr=0.05, momentum=0.9)
+        # self.optimizer =torch.optim.Adam(params=self.parameters(), lr=0.05)
         for param in self.parameters():
             logging.debug("befor param={}".format(param))
         for i in range(200):
@@ -53,11 +53,12 @@ class MyModule(nn.Module):
                 # logging.debug("logists={}".format(logists))
                 self.optimizer.zero_grad()
                 loss = self.criterion(logists,y_tensor)
-                logging.debug("loss={}".format(loss))
+                # logging.debug("loss={}".format(loss))
                 loss.backward()
                 self.optimizer.step()
-            for param in self.parameters():
-                logging.debug("after param={}".format(param))
+            logging.debug("loss={}".format(loss))
+            # for param in self.parameters():
+            #     logging.debug("after param={}".format(param))
     
 
 def mymoduleTest():

@@ -24,7 +24,7 @@ class Agent:
             self.transits[(self.state, action)][new_state] += 1
             self.state = self.env.reset() if is_done else new_state
 
-    def select_action(self, state):
+    def select_action(self, state):#state 下最好的action
         best_action, best_value = None, None
         for action in range(self.env.action_space.n):
             action_value = self.values[(state, action)]
