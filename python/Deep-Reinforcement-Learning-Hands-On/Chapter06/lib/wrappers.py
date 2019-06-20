@@ -11,11 +11,14 @@ class FireResetEnv(gym.Wrapper):
         super(FireResetEnv, self).__init__(env)
         assert env.unwrapped.get_action_meanings()[1] == 'FIRE'
         assert len(env.unwrapped.get_action_meanings()) >= 3
+        logging.debug("action_meanings={}".format(env.unwrapped.get_action_meanings()))
 
     def step(self, action):
+        logging.debug("step_FireResetEnv")
         return self.env.step(action)
 
     def reset(self):
+        logging.debug("reset_FireResetEnv")
         self.env.reset()
         obs, _, done, _ = self.env.step(1)
         if done:
@@ -35,6 +38,7 @@ class MaxAndSkipEnv(gym.Wrapper):
         self._skip = skip
 
     def step(self, action):
+        logging.debug("step_MaxAndSkipEnv")
         total_reward = 0.0
         done = None
         for _ in range(self._skip):
@@ -48,6 +52,7 @@ class MaxAndSkipEnv(gym.Wrapper):
 
     def reset(self):
         """Clear past frame buffer and init. to first obs. from inner env."""
+        logging.debug("reset_MaxAndSkipEnv")
         self._obs_buffer.clear()
         obs = self.env.reset()
         self._obs_buffer.append(obs)
@@ -60,6 +65,7 @@ class ProcessFrame84(gym.ObservationWrapper):
         self.observation_space = gym.spaces.Box(low=0, high=255, shape=(84, 84, 1), dtype=np.uint8)
 
     def observation(self, obs):
+        logging.debug("observation_ProcessFrame84")
         return ProcessFrame84.process(obs)
 
     @staticmethod
@@ -85,11 +91,13 @@ class ImageToPyTorch(gym.ObservationWrapper):
                                                 dtype=np.float32)
 
     def observation(self, observation):
+        logging.debug("observation_ImageToPyTorch")
         return np.moveaxis(observation, 2, 0)
 
 
 class ScaledFloatFrame(gym.ObservationWrapper):
     def observation(self, obs):
+        logging.debug("observation_ScaledFloatFrame")
         return np.array(obs).astype(np.float32) / 255.0
 
 
@@ -102,10 +110,12 @@ class BufferWrapper(gym.ObservationWrapper):
                                                 old_space.high.repeat(n_steps, axis=0), dtype=dtype)
 
     def reset(self):
+        logging.debug("reset_BufferWrapper")
         self.buffer = np.zeros_like(self.observation_space.low, dtype=self.dtype)
         return self.observation(self.env.reset())
 
     def observation(self, observation):
+        logging.debug("observation_BufferWrapper")
         self.buffer[:-1] = self.buffer[1:]
         self.buffer[-1] = observation
         return self.buffer
