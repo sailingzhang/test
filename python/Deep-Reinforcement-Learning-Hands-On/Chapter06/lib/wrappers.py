@@ -3,7 +3,7 @@ import gym
 import gym.spaces
 import numpy as np
 import collections
-
+import logging
 
 class FireResetEnv(gym.Wrapper):
     def __init__(self, env=None):
