@@ -77,7 +77,7 @@ class Agent:
             logging.debug("type(act_v)={},act_v'size={}".format(type(act_v),act_v.size()))
 
         # do step in the environment
-        self.env.render()
+        #self.env.render()
         new_state, reward, is_done, _ = self.env.step(action)
         self.total_reward += reward
 
@@ -112,7 +112,7 @@ def calc_loss(batch, net, tgt_net, device="cpu"):
 
 if __name__ == "__main__":
     log_init("../../02_dqn_pong.log")
-    logging.debug("enter")
+    logging.info("enter")
     parser = argparse.ArgumentParser()
     parser.add_argument("--cuda", default=False, action="store_true", help="Enable cuda")
     parser.add_argument("--env", default=DEFAULT_ENV_NAME,

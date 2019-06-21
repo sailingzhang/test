@@ -3,7 +3,10 @@ import gym
 import gym.spaces
 import numpy as np
 import collections
+from scipy import misc
 import logging
+import time
+import copy
 
 class FireResetEnv(gym.Wrapper):
     def __init__(self, env=None):
@@ -38,10 +41,11 @@ class MaxAndSkipEnv(gym.Wrapper):
         self._skip = skip
 
     def step(self, action):
-        logging.debug("step_MaxAndSkipEnv")
+        logging.debug("step_MaxAndSkipEnv,action={}".format(action))
         total_reward = 0.0
         done = None
         for _ in range(self._skip):
+            # logging.debug("skip,action={}".format(action))
             obs, reward, done, info = self.env.step(action)
             self._obs_buffer.append(obs)
             total_reward += reward
@@ -65,7 +69,8 @@ class ProcessFrame84(gym.ObservationWrapper):
         self.observation_space = gym.spaces.Box(low=0, high=255, shape=(84, 84, 1), dtype=np.uint8)
 
     def observation(self, obs):
-        logging.debug("observation_ProcessFrame84")
+        logging.debug("observation_ProcessFrame84,obs'shape={},obs'type={}".format(obs.shape,type(obs)))
+        misc.imsave("b_ProcessFrame84_"+str(time.time())+".jpg",obs)
         return ProcessFrame84.process(obs)
 
     @staticmethod
@@ -80,6 +85,7 @@ class ProcessFrame84(gym.ObservationWrapper):
         resized_screen = cv2.resize(img, (84, 110), interpolation=cv2.INTER_AREA)
         x_t = resized_screen[18:102, :]
         x_t = np.reshape(x_t, [84, 84, 1])
+        # cv2.imwrite("a_ProcessFrame84_"+str(time.time())+".jpg",x_t)
         return x_t.astype(np.uint8)
 
 
@@ -91,7 +97,7 @@ class ImageToPyTorch(gym.ObservationWrapper):
                                                 dtype=np.float32)
 
     def observation(self, observation):
-        logging.debug("observation_ImageToPyTorch")
+        logging.debug("observation_ImageToPyTorch,obs'shape={}".format(observation.shape))
         return np.moveaxis(observation, 2, 0)
 
 
@@ -115,7 +121,7 @@ class BufferWrapper(gym.ObservationWrapper):
         return self.observation(self.env.reset())
 
     def observation(self, observation):
-        logging.debug("observation_BufferWrapper")
+        logging.debug("observation_BufferWrapper,obs'shape={}".format(observation.shape))
         self.buffer[:-1] = self.buffer[1:]
         self.buffer[-1] = observation
         return self.buffer
