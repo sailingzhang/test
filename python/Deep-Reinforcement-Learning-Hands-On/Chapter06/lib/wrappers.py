@@ -70,7 +70,7 @@ class ProcessFrame84(gym.ObservationWrapper):
 
     def observation(self, obs):
         logging.debug("observation_ProcessFrame84,obs'shape={},obs'type={}".format(obs.shape,type(obs)))
-        misc.imsave("b_ProcessFrame84_"+str(time.time())+".jpg",obs)
+        #misc.imsave("b_ProcessFrame84_"+str(time.time())+".jpg",obs)
         return ProcessFrame84.process(obs)
 
     @staticmethod
