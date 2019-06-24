@@ -10,6 +10,7 @@ import collections
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import cv2
 
 from tensorboardX import SummaryWriter
 
@@ -80,7 +81,8 @@ class Agent:
         #self.env.render()
         new_state, reward, is_done, _ = self.env.step(action)
         self.total_reward += reward
-
+        logging.debug("newstate'shape={}".format(new_state.shape))
+        # cv2.imwrite("newstate_"+str(time.time())+".jpg",new_state)
         exp = Experience(self.state, action, reward, is_done, new_state)
         self.exp_buffer.append(exp)
         self.state = new_state
