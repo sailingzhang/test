@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+import sys
+sys.path.append("../../")
+sys.path.append("../../ptan-master")
+import logging
+from log_init import log_init
+
 import gym
 import ptan
 import argparse
@@ -10,10 +16,15 @@ from tensorboardX import SummaryWriter
 
 from lib import dqn_model, common
 
+
+
 REWARD_STEPS_DEFAULT = 2
 
 
 if __name__ == "__main__":
+    log_init("../../02_dqn_steps.log")
+    logging.debug("enter")
+
     params = common.HYPERPARAMS['pong']
     parser = argparse.ArgumentParser()
     parser.add_argument("--cuda", default=False, action="store_true", help="Enable cuda")

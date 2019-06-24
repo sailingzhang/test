@@ -47,8 +47,9 @@ class ExperienceSource:
         self.total_rewards = []
         self.total_steps = []
         self.vectorized = vectorized
-
+        logging.debug("steps_count={}".format(steps_count))
     def __iter__(self):
+        logging.debug("iter begin")
         states, agent_states, histories, cur_rewards, cur_steps = [], [], [], [], []
         env_lens = []
         for env in self.pool:
@@ -64,14 +65,15 @@ class ExperienceSource:
                 states.append(obs)
             env_lens.append(obs_len)
             # logging.debug("obs_len={}".format(obs_len))
-            for _ in range(obs_len):
+            for _ in range(obs_len):#所有states,histories,cur_rewards,cur_steps的长度应该是固定的吧。
                 histories.append(deque(maxlen=self.steps_count))
                 cur_rewards.append(0.0)
                 cur_steps.append(0)
                 agent_states.append(self.agent.initial_state())
 
-        iter_idx = 0
+        iter_idx = 0#这是一个无尽的迭代器，每次grouped_actions后就是一次迭代次数。
         while True:
+            logging.debug("len(states)={},len(histories)={}".format(len(states),len(histories)))
             actions = [None] * len(states)
             states_input = []
             states_indices = []
@@ -82,7 +84,7 @@ class ExperienceSource:
                     states_input.append(state)
                     states_indices.append(idx)
             if states_input:
-                logging.debug("type(states_input={}".format(states_input))
+                # logging.debug("type(states_input={}".format(type(states_input)))
                 states_actions, new_agent_states = self.agent(states_input, agent_states)
                 for idx, action in enumerate(states_actions):
                     g_idx = states_indices[idx]
@@ -90,7 +92,7 @@ class ExperienceSource:
                     agent_states[g_idx] = new_agent_states[idx]
                     # logging.debug("idx={},g_idx={}".format(idx,g_idx))
             grouped_actions = _group_list(actions, env_lens)
-
+            logging.debug("grouped_actions={}".format(grouped_actions))
             global_ofs = 0
             for env_idx, (env, action_n) in enumerate(zip(self.pool, grouped_actions)):
                 if self.vectorized:
@@ -110,7 +112,8 @@ class ExperienceSource:
                         history.append(Experience(state=state, action=action, reward=r, done=is_done))
                     if len(history) == self.steps_count and iter_idx % self.steps_delta == 0:
                         yield tuple(history)
-                    states[idx] = next_state
+                    states[idx] = next_state #注意这里会更新总states,这样states就会保持变化，不断更新相同位置的state
+                    logging.debug("states update,idx={}".format(idx))
                     if is_done:
                         # generate tail of history
                         while len(history) >= 1:
