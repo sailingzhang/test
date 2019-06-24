@@ -52,6 +52,7 @@ class MaxAndSkipEnv(gym.Wrapper):
             if done:
                 break
         max_frame = np.max(np.stack(self._obs_buffer), axis=0)
+        logging.debug("obs'shape={}".format(obs.shape))
         return max_frame, total_reward, done, info
 
     def reset(self):
@@ -70,7 +71,7 @@ class ProcessFrame84(gym.ObservationWrapper):
 
     def observation(self, obs):
         logging.debug("observation_ProcessFrame84,obs'shape={},obs'type={}".format(obs.shape,type(obs)))
-        misc.imsave("b_ProcessFrame84_"+str(time.time())+".jpg",obs)
+        # misc.imsave("b_ProcessFrame84_"+str(time.time())+".jpg",obs)
         return ProcessFrame84.process(obs)
 
     @staticmethod
@@ -98,7 +99,10 @@ class ImageToPyTorch(gym.ObservationWrapper):
 
     def observation(self, observation):
         logging.debug("observation_ImageToPyTorch,obs'shape={}".format(observation.shape))
-        return np.moveaxis(observation, 2, 0)
+        ret = np.moveaxis(observation, 2, 0)
+        # logging.debug("type(ret)={}".format(type(ret)))
+        logging.debug("ret'shape={},max={},min={}".format(ret.shape,np.max(ret),np.min(ret)))
+        return ret
 
 
 class ScaledFloatFrame(gym.ObservationWrapper):
@@ -112,11 +116,13 @@ class BufferWrapper(gym.ObservationWrapper):
         super(BufferWrapper, self).__init__(env)
         self.dtype = dtype
         old_space = env.observation_space
+        logging.debug("origin low'shape={}".format(old_space.low.shape))
         self.observation_space = gym.spaces.Box(old_space.low.repeat(n_steps, axis=0),
                                                 old_space.high.repeat(n_steps, axis=0), dtype=dtype)
 
     def reset(self):
         logging.debug("reset_BufferWrapper")
+        logging.debug("type(low)={},low'shape={},low={}".format(type(self.observation_space.low),self.observation_space.low.shape,self.observation_space.low))
         self.buffer = np.zeros_like(self.observation_space.low, dtype=self.dtype)
         return self.observation(self.env.reset())
 
