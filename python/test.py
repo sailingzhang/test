@@ -53,6 +53,13 @@ def maxTest():
     logging.debug("one_0={},one_1={}".format(one_0,one_1))
 
 
+
+def tenfortest():
+    test=torch.Tensor([[1,2,3],[4,5,6]])
+    testdata = test.data
+    logging.debug("type(test)={},type(testdata)={},id(test)={},id(testdata)={}".format(type(test),type(testdata),id(test),id(testdata)))
+    logging.debug("testdata={}".format(testdata))
+
 	
 
 if __name__ == "__main__":
@@ -61,4 +68,5 @@ if __name__ == "__main__":
     # yieldtest()
     # gatherTest()
     # squeezeTest()
-    maxTest()
+    # maxTest()
+    tenfortest()

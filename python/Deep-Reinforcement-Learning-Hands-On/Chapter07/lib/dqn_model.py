@@ -5,9 +5,11 @@ import torch.nn.functional as F
 
 import numpy as np
 
+import logging
 
 class NoisyLinear(nn.Linear):
     def __init__(self, in_features, out_features, sigma_init=0.017, bias=True):
+        logging.debug("enter")
         super(NoisyLinear, self).__init__(in_features, out_features, bias=bias)
         self.sigma_weight = nn.Parameter(torch.full((out_features, in_features), sigma_init))
         self.register_buffer("epsilon_weight", torch.zeros(out_features, in_features))
@@ -15,6 +17,7 @@ class NoisyLinear(nn.Linear):
             self.sigma_bias = nn.Parameter(torch.full((out_features,), sigma_init))
             self.register_buffer("epsilon_bias", torch.zeros(out_features))
         self.reset_parameters()
+        logging.debug("type(self.sigma_weight)={},type(self.epsilon_weight)={}".format(type(self.sigma_weight),type(self.epsilon_weight)))
 
     def reset_parameters(self):
         std = math.sqrt(3 / self.in_features)

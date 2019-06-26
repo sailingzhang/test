@@ -61,6 +61,7 @@ class NoisyDQN(nn.Module):
 
 
 if __name__ == "__main__":
+    log_init("../../04_dqn_noisy_net.log")
     params = common.HYPERPARAMS['pong']
     parser = argparse.ArgumentParser()
     parser.add_argument("--cuda", default=False, action="store_true", help="Enable cuda")
