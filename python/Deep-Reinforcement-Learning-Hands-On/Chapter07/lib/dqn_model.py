@@ -17,7 +17,7 @@ class NoisyLinear(nn.Linear):
             self.sigma_bias = nn.Parameter(torch.full((out_features,), sigma_init))
             self.register_buffer("epsilon_bias", torch.zeros(out_features))
         self.reset_parameters()
-        logging.debug("type(self.sigma_weight)={},type(self.epsilon_weight)={}".format(type(self.sigma_weight),type(self.epsilon_weight)))
+        logging.debug("type(self.sigma_weight)={},type(self.epsilon_weight)={},type(self.weight)={},type(self.bias)={}".format(type(self.sigma_weight),type(self.epsilon_weight),type(self.weight),type(self.bias)))
 
     def reset_parameters(self):
         std = math.sqrt(3 / self.in_features)
@@ -27,6 +27,7 @@ class NoisyLinear(nn.Linear):
     def forward(self, input):
         self.epsilon_weight.normal_()
         bias = self.bias
+        # logging.debug("id(bias)={},id(self.bias)={}".format(id(bias),id(bias)))
         if bias is not None:
             self.epsilon_bias.normal_()
             bias = bias + self.sigma_bias * self.epsilon_bias.data

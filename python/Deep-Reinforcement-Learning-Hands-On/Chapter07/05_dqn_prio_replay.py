@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+import sys
+sys.path.append("../../")
+sys.path.append("../../ptan-master")
+import logging
+from log_init import log_init
+
 import gym
 import ptan
 import numpy as np
@@ -36,7 +42,7 @@ class PrioReplayBuffer:
                 self.buffer.append(sample)
             else:
                 self.buffer[self.pos] = sample
-            self.priorities[self.pos] = max_prio
+            self.priorities[self.pos] = max_prio#每加入一个样本，初始化priority
             self.pos = (self.pos + 1) % self.capacity
 
     def sample(self, batch_size, beta=0.4):
@@ -75,10 +81,12 @@ def calc_loss(batch, batch_weights, net, tgt_net, gamma, device="cpu"):
 
     expected_state_action_values = next_state_values.detach() * gamma + rewards_v
     losses_v = batch_weights_v * (state_action_values - expected_state_action_values) ** 2
+    logging.debug("type(state_action_values)={},type(expected_state_action_values)={},type(losses_v)={},losses_v'size={}".format(type(state_action_values),type(expected_state_action_values),type(losses_v),losses_v.size()))
     return losses_v.mean(), losses_v + 1e-5
 
 
 if __name__ == "__main__":
+    log_init("../../05_dqn_prio.replay.log")
     params = common.HYPERPARAMS['pong']
     parser = argparse.ArgumentParser()
     parser.add_argument("--cuda", default=False, action="store_true", help="Enable cuda")

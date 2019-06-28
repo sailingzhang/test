@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+import sys
+sys.path.append("../../")
+sys.path.append("../../ptan-master")
+import logging
+from log_init import log_init
+
+
 import gym
 import ptan
 import argparse
@@ -51,6 +58,7 @@ class DuelingDQN(nn.Module):
 
 
 if __name__ == "__main__":
+    log_init("../../06_dqn_dueling.log")
     params = common.HYPERPARAMS['pong']
     parser = argparse.ArgumentParser()
     parser.add_argument("--cuda", default=False, action="store_true", help="Enable cuda")
