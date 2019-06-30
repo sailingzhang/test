@@ -3,6 +3,7 @@ import time
 import numpy as np
 import torch
 import torch.nn as nn
+import logging
 
 
 HYPERPARAMS = {
@@ -156,12 +157,15 @@ def distr_projection(next_distr, rewards, dones, Vmin, Vmax, n_atoms, gamma):
     proj_distr = np.zeros((batch_size, n_atoms), dtype=np.float32)
     delta_z = (Vmax - Vmin) / (n_atoms - 1)
     for atom in range(n_atoms):
-        tz_j = np.minimum(Vmax, np.maximum(Vmin, rewards + (Vmin + atom * delta_z) * gamma))
-        b_j = (tz_j - Vmin) / delta_z
+        tz_j = np.minimum(Vmax, np.maximum(Vmin, rewards + (Vmin + atom * delta_z) * gamma))#这个应该是q_value右移rewards
+        b_j = (tz_j - Vmin) / delta_z  #b_j'shape=(batchsize,),重新归化右移后的位置。保持在一定范围内。
+        logging.debug("b_j'shape={}".format(b_j.shape))
         l = np.floor(b_j).astype(np.int64)
         u = np.ceil(b_j).astype(np.int64)
-        eq_mask = u == l
+        eq_mask = u == l#eq_mask.shape=(batchsize,)
+        logging.debug("type(eq_mask)={},eq_mask.shape,eq_mask={},l[eq_mask]={}".format(type(eq_mask),eq_mask.shape,eq_mask,l[eq_mask]))
         proj_distr[eq_mask, l[eq_mask]] += next_distr[eq_mask, atom]
+        logging.debug("u={}\nl={}\nl[eq_mask]=[]".format(u,l,l[eq_mask]))
         ne_mask = u != l
         proj_distr[ne_mask, l[ne_mask]] += next_distr[ne_mask, atom] * (u - b_j)[ne_mask]
         proj_distr[ne_mask, u[ne_mask]] += next_distr[ne_mask, atom] * (b_j - l)[ne_mask]

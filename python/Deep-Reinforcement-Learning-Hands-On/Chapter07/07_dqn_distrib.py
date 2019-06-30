@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+import sys
+sys.path.append("../../")
+sys.path.append("../../ptan-master")
+import logging
+from log_init import log_init
+
+
 import gym
 import ptan
 import numpy as np
@@ -47,7 +54,7 @@ class DistributionalDQN(nn.Module):
         self.fc = nn.Sequential(
             nn.Linear(conv_out_size, 512),
             nn.ReLU(),
-            nn.Linear(512, n_actions * N_ATOMS)
+            nn.Linear(512, n_actions * N_ATOMS)#理解为每个状态下各个action能取得到的value值的相对大小。
         )
 
         self.register_buffer("supports", torch.arange(Vmin, Vmax+DELTA_Z, DELTA_Z))
@@ -62,17 +69,18 @@ class DistributionalDQN(nn.Module):
         fx = x.float() / 256
         conv_out = self.conv(fx).view(batch_size, -1)
         fc_out = self.fc(conv_out)
-        return fc_out.view(batch_size, -1, N_ATOMS)
+        return fc_out.view(batch_size, -1, N_ATOMS)#这是分布
 
     def both(self, x):
         cat_out = self(x)
-        probs = self.apply_softmax(cat_out)
+        probs = self.apply_softmax(cat_out)#probs'shape=(batch,action_n,N_ATOMS),可理解为每个状态下各个action的能取得value的可概率分布。
         weights = probs * self.supports
         res = weights.sum(dim=2)
-        return cat_out, res
+        logging.debug("probs.size()={},res.size={}".format(probs.size(),res.size()))#res.size=(batch,action_n)每个状态下各action的value
+        return cat_out, res#分布和期望都返回
 
     def qvals(self, x):
-        return self.both(x)[1]
+        return self.both(x)[1]#只返回期望
 
     def apply_softmax(self, t):
         return self.softmax(t.view(-1, N_ATOMS)).view(t.size())
@@ -141,16 +149,17 @@ def calc_loss(batch, net, tgt_net, gamma, device="cpu", save_prefix=None):
     next_distr_v, next_qvals_v = tgt_net.both(next_states_v)
     next_actions = next_qvals_v.max(1)[1].data.cpu().numpy()
     next_distr = tgt_net.apply_softmax(next_distr_v).data.cpu().numpy()
-
-    next_best_distr = next_distr[range(batch_size), next_actions]
+    logging.debug("net_distr'shape={}".format(next_distr.shape))
+    next_best_distr = next_distr[range(batch_size), next_actions]#best action's probablity distribution,shape=(batch,natoms)
+    logging.debug("next_best_distr={},next_best_distr.shape={}".format(next_best_distr,next_best_distr.shape))
     dones = dones.astype(np.bool)
 
     # project our distribution using Bellman update
-    proj_distr = common.distr_projection(next_best_distr, rewards, dones, Vmin, Vmax, N_ATOMS, gamma)
-
+    proj_distr = common.distr_projection(next_best_distr, rewards, dones, Vmin, Vmax, N_ATOMS, gamma)#proj_distr'shape=(batch,atoms_n)
+    logging.debug("proj_distr'shape={}".format(proj_distr.shape))
     # calculate net output
     distr_v = net(states_v)
-    state_action_values = distr_v[range(batch_size), actions_v.data]
+    state_action_values = distr_v[range(batch_size), actions_v.data]#current action's value distribution
     state_log_sm_v = F.log_softmax(state_action_values, dim=1)
     proj_distr_v = torch.tensor(proj_distr).to(device)
 
@@ -163,6 +172,7 @@ def calc_loss(batch, net, tgt_net, gamma, device="cpu", save_prefix=None):
 
 
 if __name__ == "__main__":
+    log_init("../../07_dqn_distrib.log")
     params = common.HYPERPARAMS['pong']
 #    params['epsilon_frames'] *= 2
     parser = argparse.ArgumentParser()
@@ -173,6 +183,7 @@ if __name__ == "__main__":
     env = gym.make(params['env_name'])
     env = ptan.common.wrappers.wrap_dqn(env)
 
+    logging.debug("action_space'shape={}".format(env.action_space))
     writer = SummaryWriter(comment="-" + params['run_name'] + "-distrib")
     net = DistributionalDQN(env.observation_space.shape, env.action_space.n).to(device)
 
