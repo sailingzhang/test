@@ -67,9 +67,9 @@ class NoisyFactorizedLinear(nn.Linear):
 class DQN(nn.Module):
     def __init__(self, input_shape, n_actions):
         super(DQN, self).__init__()
-
+        # logging.debug("type(input_shape)={},type(n_actions)={}".format(type(input_shape),type(n_actions)))
         self.conv = nn.Sequential(
-            nn.Conv2d(input_shape[0], 32, kernel_size=8, stride=4),
+            nn.Conv2d(input_shape[0], 32, kernel_size=8, stride=4),#input_shape is tuple
             nn.ReLU(),
             nn.Conv2d(32, 64, kernel_size=4, stride=2),
             nn.ReLU(),
@@ -85,10 +85,11 @@ class DQN(nn.Module):
         )
 
     def _get_conv_out(self, shape):
-        o = self.conv(torch.zeros(1, *shape))
-        return int(np.prod(o.size()))
+        o = self.conv(torch.zeros(1, *shape))#传入参数时要加batch
+        return int(np.prod(o.size()))#prod是连乘
 
     def forward(self, x):
+        # logging.debug("type(x)={},x.size={}".format(type(x),x.size()))
         fx = x.float() / 256
         conv_out = self.conv(fx).view(fx.size()[0], -1)
         return self.fc(conv_out)

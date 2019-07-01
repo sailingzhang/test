@@ -87,7 +87,7 @@ class ExperienceSource:
                 # logging.debug("type(states_input={}".format(type(states_input)))
                 states_actions, new_agent_states = self.agent(states_input, agent_states)
                 for idx, action in enumerate(states_actions):
-                    g_idx = states_indices[idx]
+                    g_idx = states_indices[idx]#it no need to calculate the g_idx,because idx is reseted from 0
                     actions[g_idx] = action
                     agent_states[g_idx] = new_agent_states[idx]
                     # logging.debug("idx={},g_idx={}".format(idx,g_idx))

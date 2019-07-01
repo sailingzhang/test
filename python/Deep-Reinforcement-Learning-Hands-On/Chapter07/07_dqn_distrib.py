@@ -146,23 +146,22 @@ def calc_loss(batch, net, tgt_net, gamma, device="cpu", save_prefix=None):
     next_states_v = torch.tensor(next_states).to(device)
 
     # next state distribution
-    next_distr_v, next_qvals_v = tgt_net.both(next_states_v)
-    next_actions = next_qvals_v.max(1)[1].data.cpu().numpy()
+    next_distr_v, next_qvals_v = tgt_net.both(next_states_v)#next_distr_v=(batch,action_n,atoms_n)  next_qvals_v=(batch,action_n)
+    next_actions = next_qvals_v.max(1)[1].data.cpu().numpy() #next_actions.shape=(batch)
     next_distr = tgt_net.apply_softmax(next_distr_v).data.cpu().numpy()
-    logging.debug("net_distr'shape={}".format(next_distr.shape))
+    logging.debug("next_actions.shape={},net_distr'shape={}".format(next_actions.shape,next_distr.shape))
     next_best_distr = next_distr[range(batch_size), next_actions]#best action's probablity distribution,shape=(batch,natoms)
     logging.debug("next_best_distr={},next_best_distr.shape={}".format(next_best_distr,next_best_distr.shape))
     dones = dones.astype(np.bool)
 
     # project our distribution using Bellman update
     proj_distr = common.distr_projection(next_best_distr, rewards, dones, Vmin, Vmax, N_ATOMS, gamma)#proj_distr'shape=(batch,atoms_n)
-    logging.debug("proj_distr'shape={}".format(proj_distr.shape))
     # calculate net output
     distr_v = net(states_v)
-    state_action_values = distr_v[range(batch_size), actions_v.data]#current action's value distribution
-    state_log_sm_v = F.log_softmax(state_action_values, dim=1)
+    state_action_values = distr_v[range(batch_size), actions_v.data]#current action's value distribution  
+    state_log_sm_v = F.log_softmax(state_action_values, dim=1)#state_log_sm_v.shape=(batch,atoms_n)
     proj_distr_v = torch.tensor(proj_distr).to(device)
-
+    logging.debug("proj_distr'shape={},state_log_sm_v'shape={}".format(proj_distr.shape,state_log_sm_v.shape))
     if save_prefix is not None:
         pred = F.softmax(state_action_values, dim=1).data.cpu().numpy()
         save_transition_images(batch_size, pred, proj_distr, next_best_distr, dones, rewards, save_prefix)

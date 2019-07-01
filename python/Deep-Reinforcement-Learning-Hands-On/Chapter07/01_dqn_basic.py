@@ -34,6 +34,7 @@ if __name__ == "__main__":
     writer = SummaryWriter(comment="-" + params['run_name'] + "-basic")
     net = dqn_model.DQN(env.observation_space.shape, env.action_space.n).to(device)
 
+
     tgt_net = ptan.agent.TargetNet(net)
     selector = ptan.actions.EpsilonGreedyActionSelector(epsilon=params['epsilon_start'])
     epsilon_tracker = common.EpsilonTracker(selector, params)

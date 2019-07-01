@@ -136,6 +136,9 @@ class RewardTracker:
 
 
 class EpsilonTracker:
+    """
+    不断更新 selector的epsilon的值。
+    """
     def __init__(self, epsilon_greedy_selector, params):
         self.epsilon_greedy_selector = epsilon_greedy_selector
         self.epsilon_start = params['epsilon_start']
