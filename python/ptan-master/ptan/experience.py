@@ -50,7 +50,10 @@ class ExperienceSource:
         logging.debug("steps_count={}".format(steps_count))
     def __iter__(self):
         logging.debug("iter begin")
-        states, agent_states, histories, cur_rewards, cur_steps = [], [], [], [], []
+        """
+        这个生成器的主要功能是从env的初始状态开始，从agent得到best action,然后再把action通过env.step(),得到连续的(state,action,reward,isdonw,nextstate)，满足steps_count就yield
+        """
+        states, agent_states, histories, cur_rewards, cur_steps = [], [], [], [], []#它们的长度是固定的。
         env_lens = []
         for env in self.pool:
             obs = env.reset()
@@ -65,16 +68,19 @@ class ExperienceSource:
                 states.append(obs)
             env_lens.append(obs_len)
             # logging.debug("obs_len={}".format(obs_len))
-            for _ in range(obs_len):#所有states,histories,cur_rewards,cur_steps的长度应该是固定的吧。
+            for _ in range(obs_len):#遍历每个环境的obs,  所有states,histories,cur_rewards,cur_steps的长度应该是固定的吧。
                 histories.append(deque(maxlen=self.steps_count))
                 cur_rewards.append(0.0)
                 cur_steps.append(0)
                 agent_states.append(self.agent.initial_state())
+        """
+        以上代码是填充每个环境的初始状态。states,agent_states,cur_rewards的长度至此已经固定了。
+        """
 
-        iter_idx = 0#这是一个无尽的迭代器，每次grouped_actions后就是一次迭代次数。
+        iter_idx = 0#这是一个无尽的迭代器，一个iter_idx代表一个环境。
         while True:
             logging.debug("len(states)={},len(histories)={}".format(len(states),len(histories)))
-            actions = [None] * len(states)
+            actions = [None] * len(states)#action的长度固定了
             states_input = []
             states_indices = []
             for idx, state in enumerate(states):
@@ -93,6 +99,11 @@ class ExperienceSource:
                     # logging.debug("idx={},g_idx={}".format(idx,g_idx))
             grouped_actions = _group_list(actions, env_lens)
             logging.debug("grouped_actions={}".format(grouped_actions))
+
+            """
+            以上代码根据固定的一波state,得到固定一波action,且这波action按照环境分好组，至些所有state和action已经填充好。
+            """
+
             global_ofs = 0
             for env_idx, (env, action_n) in enumerate(zip(self.pool, grouped_actions)):
                 if self.vectorized:
@@ -100,10 +111,12 @@ class ExperienceSource:
                 else:
                     next_state, r, is_done, _ = env.step(action_n[0])
                     next_state_n, r_n, is_done_n = [next_state], [r], [is_done]
-
+                """
+                输入某个env的一波action到env, 然后得到一波reward,一波next_state.
+                """
                 for ofs, (action, next_state, r, is_done) in enumerate(zip(action_n, next_state_n, r_n, is_done_n)):
                     idx = global_ofs + ofs
-                    state = states[idx]
+                    state = states[idx]#这里的action_n,next_state_n,r_n,is_done_n都跟原始的states相关连。
                     history = histories[idx]
 
                     cur_rewards[idx] += r
@@ -111,7 +124,7 @@ class ExperienceSource:
                     if state is not None:
                         history.append(Experience(state=state, action=action, reward=r, done=is_done))
                     if len(history) == self.steps_count and iter_idx % self.steps_delta == 0:
-                        yield tuple(history)
+                        yield tuple(history)#state对应的idx是针对具体的env,固定的idx的state是某个env的连续，相当于 initstate->nextstate->nextstate....
                     states[idx] = next_state #注意这里会更新总states,这样states就会保持变化，不断更新相同位置的state
                     logging.debug("states update,idx={}".format(idx))
                     if is_done:
