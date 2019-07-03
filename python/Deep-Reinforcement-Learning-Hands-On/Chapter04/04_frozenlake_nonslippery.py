@@ -63,7 +63,7 @@ def iterate_batches(env, net, batch_size):
         episode_reward += reward
         episode_steps.append(EpisodeStep(observation=obs, action=action))
         if is_done:
-            batch.append(Episode(reward=episode_reward, steps=episode_steps))
+            batch.append(Episode(reward=episode_reward, steps=episode_steps))#batch里的每一个元素是一个episode的总reward和每step的(obs,action)
             episode_reward = 0.0
             episode_steps = []
             next_obs = env.reset()
