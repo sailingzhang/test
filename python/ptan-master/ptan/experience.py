@@ -121,8 +121,12 @@ class ExperienceSource:
 
                     cur_rewards[idx] += r
                     cur_steps[idx] += 1
+                    """
+                    cur_rewards是指一个episode的总rewards
+                    cur_steps是指一个episode的总step
+                    """
                     if state is not None:
-                        history.append(Experience(state=state, action=action, reward=r, done=is_done))
+                        history.append(Experience(state=state, action=action, reward=r, done=is_done))#vectoried下，一个环境可能有多个state,只有对应state的history满足step_count的时候才yield
                     if len(history) == self.steps_count and iter_idx % self.steps_delta == 0:
                         yield tuple(history)#state对应的idx是针对具体的env,固定的idx的state是某个env的连续，相当于 initstate->nextstate->nextstate....
                     states[idx] = next_state #注意这里会更新总states,这样states就会保持变化，不断更新相同位置的state
@@ -130,7 +134,7 @@ class ExperienceSource:
                     if is_done:
                         # generate tail of history
                         while len(history) >= 1:
-                            yield tuple(history)
+                            yield tuple(history)#当遇到done时,yield并不一定满足steps_count。应该算废数据吧。
                             history.popleft()
                         self.total_rewards.append(cur_rewards[idx])
                         self.total_steps.append(cur_steps[idx])
@@ -195,10 +199,10 @@ class ExperienceSourceFirstLast(ExperienceSource):
             logging.debug("len(exp)={}".format(len(exp)))
             if exp[-1].done and len(exp) <= self.steps:
                 last_state = None
-                elems = exp
+                elems = exp#这种情况时，中间的state和reward会少，但应该不会影响收敛。 因为更多的rewad只是会令更多的收敛。
             else:
                 last_state = exp[-1].state
-                elems = exp[:-1]
+                elems = exp[:-1]#不包括最后一个state.
             total_reward = 0.0
             for e in reversed(elems):
                 total_reward *= self.gamma
