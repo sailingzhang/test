@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+import sys
+sys.path.append("../../")
+sys.path.append("../../ptan-master")
+import logging
+from log_init import log_init
+
 import random
 import gym
 import gym.spaces
@@ -59,7 +65,7 @@ def iterate_batches(env, net, batch_size):
     obs = env.reset()
     sm = nn.Softmax(dim=1)
     while True:
-        obs_v = torch.FloatTensor([obs])
+        obs_v = torch.FloatTensor([obs])#[obs]是一个，不是batch
         act_probs_v = sm(net(obs_v))
         act_probs = act_probs_v.data.numpy()[0]
         action = np.random.choice(len(act_probs), p=act_probs)
@@ -78,14 +84,17 @@ def iterate_batches(env, net, batch_size):
 
 
 def filter_batch(batch, percentile):
-    disc_rewards = list(map(lambda s: s.reward * (GAMMA ** len(s.steps)), batch))
+    """
+    输入batch是历史batch
+    """
+    disc_rewards = list(map(lambda s: s.reward * (GAMMA ** len(s.steps)), batch))#为什么生命周期越长，reward会下降越快？可能是因为花的时间越短越好吧。
     reward_bound = np.percentile(disc_rewards, percentile)
 
     train_obs = []
     train_act = []
     elite_batch = []
     for example, discounted_reward in zip(batch, disc_rewards):
-        if discounted_reward > reward_bound:
+        if discounted_reward > reward_bound:#这里进行筛选应该是保证收敛的前提。
             train_obs.extend(map(lambda step: step.observation, example.steps))
             train_act.extend(map(lambda step: step.action, example.steps))
             elite_batch.append(example)
@@ -94,22 +103,23 @@ def filter_batch(batch, percentile):
 
 
 if __name__ == "__main__":
+    log_init("../../04_frozenlake_nonslippery.log")
     random.seed(12345)
     env = gym.envs.toy_text.frozen_lake.FrozenLakeEnv(is_slippery=False)
-    env = gym.wrappers.TimeLimit(env, max_episode_steps=100)
+    # env = gym.wrappers.TimeLimit(env, max_episode_steps=100)#env里有一个错误，暂时注释掉
     env = DiscreteOneHotWrapper(env)
     # env = gym.wrappers.Monitor(env, directory="mon", force=True)
     obs_size = env.observation_space.shape[0]
     n_actions = env.action_space.n
-
+    logging.debug("env.observation_space.shape={}".format(env.observation_space.shape))
     net = Net(obs_size, HIDDEN_SIZE, n_actions)
     objective = nn.CrossEntropyLoss()
     optimizer = optim.Adam(params=net.parameters(), lr=0.001)
     writer = SummaryWriter(comment="-frozenlake-nonslippery")
 
     full_batch = []
-    for iter_no, batch in enumerate(iterate_batches(env, net, BATCH_SIZE)):#返回的batch是一个生命周期，且是有序的。
-        reward_mean = float(np.mean(list(map(lambda s: s.reward, batch))))
+    for iter_no, batch in enumerate(iterate_batches(env, net, BATCH_SIZE)):#返回的batch是一个生命周期，且是有序的。batch中只有all_rewards,obs,action，没有step reward
+        reward_mean = float(np.mean(list(map(lambda s: s.reward, batch))))#这里的reward是一个episode 的总reward.因为经过筛选，这里的reward_mean应该越来越高。
         full_batch, obs, acts, reward_bound = filter_batch(full_batch + batch, PERCENTILE)#叠加输入，返回被筛选后的原始batch,obs,acts,和筛选边界。
         if not full_batch:
             continue
