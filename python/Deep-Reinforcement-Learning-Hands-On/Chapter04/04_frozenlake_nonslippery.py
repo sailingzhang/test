@@ -49,6 +49,10 @@ EpisodeStep = namedtuple('EpisodeStep', field_names=['observation', 'action'])
 
 
 def iterate_batches(env, net, batch_size):
+    """
+    返回的batch是一个生命周期，且是有序的。
+    action 是通过net选取的。
+    """
     batch = []
     episode_reward = 0.0
     episode_steps = []
@@ -104,9 +108,9 @@ if __name__ == "__main__":
     writer = SummaryWriter(comment="-frozenlake-nonslippery")
 
     full_batch = []
-    for iter_no, batch in enumerate(iterate_batches(env, net, BATCH_SIZE)):
+    for iter_no, batch in enumerate(iterate_batches(env, net, BATCH_SIZE)):#返回的batch是一个生命周期，且是有序的。
         reward_mean = float(np.mean(list(map(lambda s: s.reward, batch))))
-        full_batch, obs, acts, reward_bound = filter_batch(full_batch + batch, PERCENTILE)
+        full_batch, obs, acts, reward_bound = filter_batch(full_batch + batch, PERCENTILE)#叠加输入，返回被筛选后的原始batch,obs,acts,和筛选边界。
         if not full_batch:
             continue
         obs_v = torch.FloatTensor(obs)
