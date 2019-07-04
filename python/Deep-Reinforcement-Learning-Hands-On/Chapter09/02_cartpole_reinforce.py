@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+import sys
+sys.path.append("../../")
+sys.path.append("../../ptan-master")
+import logging
+from log_init import log_init
+
 import gym
 import ptan
 import numpy as np
@@ -39,6 +45,7 @@ def calc_qvals(rewards):
 
 
 if __name__ == "__main__":
+    log_init("../../02_cartpole_reinforce.log")
     env = gym.make("CartPole-v0")
     writer = SummaryWriter(comment="-cartpole-reinforce")
 
@@ -87,7 +94,7 @@ if __name__ == "__main__":
 
         if batch_episodes < EPISODES_TO_TRAIN:
             continue
-
+        #积累一定量之后才处理。
         optimizer.zero_grad()
         states_v = torch.FloatTensor(batch_states)
         batch_actions_t = torch.LongTensor(batch_actions)
@@ -95,7 +102,7 @@ if __name__ == "__main__":
 
         logits_v = net(states_v)
         log_prob_v = F.log_softmax(logits_v, dim=1)
-        log_prob_actions_v = batch_qvals_v * log_prob_v[range(len(batch_states)), batch_actions_t]
+        log_prob_actions_v = batch_qvals_v * log_prob_v[range(len(batch_states)), batch_actions_t]#很像cross entropy
         loss_v = -log_prob_actions_v.mean()
 
         loss_v.backward()

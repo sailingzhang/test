@@ -166,7 +166,7 @@ def calc_loss(batch, net, tgt_net, gamma, device="cpu", save_prefix=None):
         pred = F.softmax(state_action_values, dim=1).data.cpu().numpy()
         save_transition_images(batch_size, pred, proj_distr, next_best_distr, dones, rewards, save_prefix)
 
-    loss_v = -state_log_sm_v * proj_distr_v
+    loss_v = -state_log_sm_v * proj_distr_v#我的猜想： d(q||p)=H‘(x)-H(x)  H(x)是固定的，为最优编码bit数。
     return loss_v.sum(dim=1).mean()
 
 
