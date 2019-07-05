@@ -102,6 +102,16 @@ def filter_batch(batch, percentile):
     return elite_batch, train_obs, train_act, reward_bound
 
 
+"""
+（1）收集episode
+（2）根据每个episode的总rewards和step的长度对每个episode进行评分。
+（3）选择一批最评分最高的episode,  best_episode_batch.
+(4)把best_episode_batch的obs通过 net得到score.
+(5)把best_episode_batch的action 当成目标分类。
+(6)cross_entropy(score,action)
+
+"""
+
 if __name__ == "__main__":
     log_init("../../04_frozenlake_nonslippery.log")
     random.seed(12345)

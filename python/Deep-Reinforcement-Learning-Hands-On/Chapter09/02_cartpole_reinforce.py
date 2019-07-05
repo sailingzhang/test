@@ -43,6 +43,13 @@ def calc_qvals(rewards):
         res.append(sum_r)
     return list(reversed(res))
 
+"""
+(1)收集批量episode，得到（s,a,r,n_s）
+(2)计算每一个Q(s,a)，为每次reward的discount和. 与chapter4最大的不同在于此，chapter04是通过net得到
+(3)cross_entropy(Q(s,a),action)
+
+"""
+
 
 if __name__ == "__main__":
     log_init("../../02_cartpole_reinforce.log")
@@ -64,7 +71,10 @@ if __name__ == "__main__":
 
     batch_episodes = 0
     batch_states, batch_actions, batch_qvals = [], [], []
-    cur_rewards = []
+    cur_rewards = [] #每一个episod会清空一次。
+    """
+    batch_qvals是各个action下disaccount rewards sum
+    """
 
     for step_idx, exp in enumerate(exp_source):
         batch_states.append(exp.state)
@@ -75,6 +85,9 @@ if __name__ == "__main__":
             batch_qvals.extend(calc_qvals(cur_rewards))
             cur_rewards.clear()
             batch_episodes += 1
+        """
+        一个episode结束，cur_rewards是这个episode的所有rewards的集合。经过disaccount后得到calc_qvals
+        """
 
         # handle new rewards
         new_rewards = exp_source.pop_total_rewards()
@@ -94,7 +107,7 @@ if __name__ == "__main__":
 
         if batch_episodes < EPISODES_TO_TRAIN:
             continue
-        #积累一定量之后才处理。
+        #积累一定量episode之后才处理。
         optimizer.zero_grad()
         states_v = torch.FloatTensor(batch_states)
         batch_actions_t = torch.LongTensor(batch_actions)
