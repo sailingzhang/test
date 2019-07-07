@@ -45,8 +45,8 @@ def calc_qvals(rewards):
 
 """
 (1)收集批量episode，得到（s,a,r,n_s）
-(2)计算每一个Q(s,a)，为每次reward的discount和. 与chapter4最大的不同在于此，chapter04是通过net得到
-(3)cross_entropy(Q(s,a),action)
+(2)计算每一个Q(s,a)，为每次reward的discount和. 与chapter4最大的不同在于此，chapter04是筛选最优的episode,通过net得到Q,通过Q计算action
+(3) (Q(s,a),action_probability)求原始的最小loss 。 而chapter04是entropy_cross,action其实就是一argmax(Q(s,a))
 
 """
 
@@ -93,7 +93,7 @@ if __name__ == "__main__":
         new_rewards = exp_source.pop_total_rewards()
         if new_rewards:
             done_episodes += 1
-            reward = new_rewards[0]
+            reward = new_rewards[0]#因为每个episode的(state,action,reward,isdone,nextstate)都pop,所以这里元素个数应该是1
             total_rewards.append(reward)
             mean_rewards = float(np.mean(total_rewards[-100:]))
             print("%d: reward: %6.2f, mean_100: %6.2f, episodes: %d" % (
@@ -115,7 +115,10 @@ if __name__ == "__main__":
 
         logits_v = net(states_v)
         log_prob_v = F.log_softmax(logits_v, dim=1)
-        log_prob_actions_v = batch_qvals_v * log_prob_v[range(len(batch_states)), batch_actions_t]#很像cross entropy
+        log_prob_actions_v = batch_qvals_v * log_prob_v[range(len(batch_states)), batch_actions_t]
+        """
+        很像cross_entropy,但不是。因为cross_entropy参数是（类别，概率）,但这里是（值，概率），这个是什么损失函数要弄明白。
+        """
         loss_v = -log_prob_actions_v.mean()
 
         loss_v.backward()
@@ -125,5 +128,8 @@ if __name__ == "__main__":
         batch_states.clear()
         batch_actions.clear()
         batch_qvals.clear()
+        """
+        每一个episode训练一次。
+        """
 
     writer.close()

@@ -38,6 +38,9 @@ def calc_qvals(rewards):
     res = list(reversed(res))
     mean_q = np.mean(res)
     return [q - mean_q for q in res]
+    """
+    防止梯度爆炸，这是与02_cartpole_reinforce不同之处。
+    """
 
 
 if __name__ == "__main__":

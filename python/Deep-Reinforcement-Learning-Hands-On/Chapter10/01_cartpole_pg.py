@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+
+sys.path.append("../../")
+sys.path.append("../../ptan-master")
+import logging
+from log_init import log_init
+
 import gym
 import ptan
 import argparse
@@ -33,6 +39,7 @@ class PGN(nn.Module):
 
 
 if __name__ == "__main__":
+    log_init("../../01_cartople_pg.log")
     parser = argparse.ArgumentParser()
     parser.add_argument("--baseline", default=False, action='store_true', help="Enable mean baseline")
     args = parser.parse_args()
@@ -67,6 +74,9 @@ if __name__ == "__main__":
             batch_scales.append(exp.reward - baseline)
         else:
             batch_scales.append(exp.reward)
+        """
+        这里很重要
+        """
 
         # handle new rewards
         new_rewards = exp_source.pop_total_rewards()

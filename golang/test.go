@@ -8,6 +8,7 @@ import(
 	"sync"
 	"time"
 	"strconv"
+	"github.com/jdeng/goface"
 )
 
 
@@ -104,10 +105,50 @@ func mapsliceTest2(){
 }
 
 
+func faceTest(){
+		// detection
+		bs, err := ioutil.ReadFile(*imgFile)
+		if nil != err{
+			seelog.Errorf("read file err:%v",err)
+			return
+		}
+		img, err := goface.TensorFromJpeg(bs)
+		if nil != err{
+			seelog.Errorf("tensor form jpg err:%v",err)
+			return
+		}
+		det, err := goface.NewMtcnnDetector("mtcnn.pb")
+		if nil != err{
+			seelog.Errorf("new detector err:%v",err)
+			return
+		}
+		bbox, err := det.DetectFaces(img) //[][]float32, i.e., [x1,y1,x2,y2],...
+		if nil != err{
+			seelog.Errorf("detect err:",err)
+			return
+		}
+		// embeddings
+		mean, std := goface.MeanStd(img)
+		wimg, err := goface.PrewhitenImage(img, mean, std)
+		if nil != err{
+			seelog.Errorf("PrewhitenImage err:",err)
+			return
+		}
+		fn, err := goface.NewFacenet("facenet.pb")
+		if nil != err{
+			seelog.Errorf("NewFacenet err:",err)
+			return
+		}
+		emb, err := fn.Embedding(wimg)
+		if nil != err{
+			seelog.Errorf("Embedding err:",err)
+			return
+		}
+}
+
 func main(){
 	LOG_INIT("test_log_conf.xml")
 	defer seelog.Flush()
 	// rwtest()
 	mapsliceTest2()
 }
-

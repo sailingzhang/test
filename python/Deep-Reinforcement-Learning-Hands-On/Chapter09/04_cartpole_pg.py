@@ -59,6 +59,9 @@ if __name__ == "__main__":
         batch_states.append(exp.state)
         batch_actions.append(int(exp.action))
         batch_scales.append(exp.reward - baseline)
+        """
+        这里的value是没有discount的，也就是不累加历史reward. 这可能跟cartpole是及时reward，不需要历史reward的原因。
+        """
 
         # handle new rewards
         new_rewards = exp_source.pop_total_rewards()
@@ -91,7 +94,7 @@ if __name__ == "__main__":
 
         prob_v = F.softmax(logits_v, dim=1)
         entropy_v = -(prob_v * log_prob_v).sum(dim=1).mean()
-        entropy_loss_v = -ENTROPY_BETA * entropy_v
+        entropy_loss_v = -ENTROPY_BETA * entropy_v #加入了entropy,增加随机性，防止局部最优后stuck住。
         loss_v = loss_policy_v + entropy_loss_v
 
         loss_v.backward()

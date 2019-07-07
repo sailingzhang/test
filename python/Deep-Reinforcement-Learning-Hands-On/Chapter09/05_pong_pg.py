@@ -61,7 +61,7 @@ if __name__ == "__main__":
     print(net)
 
     agent = ptan.agent.PolicyAgent(net, apply_softmax=True, device=device)
-    exp_source = ptan.experience.ExperienceSourceFirstLast(envs, agent, gamma=GAMMA, steps_count=REWARD_STEPS)
+    exp_source = ptan.experience.ExperienceSourceFirstLast(envs, agent, gamma=GAMMA, steps_count=REWARD_STEPS)#这里有许多env.
 
     optimizer = optim.Adam(net.parameters(), lr=LEARNING_RATE, eps=1e-3)
 
@@ -79,7 +79,7 @@ if __name__ == "__main__":
     with common.RewardTracker(writer, stop_reward=18) as tracker:
         for step_idx, exp in enumerate(exp_source):
             baseline_buf.add(exp.reward)
-            baseline = baseline_buf.mean()
+            baseline = baseline_buf.mean()#移动平均
             batch_states.append(np.array(exp.state, copy=False))
             batch_actions.append(int(exp.action))
             batch_scales.append(exp.reward - baseline)
@@ -97,7 +97,7 @@ if __name__ == "__main__":
             states_v = torch.FloatTensor(batch_states).to(device)
             batch_actions_t = torch.LongTensor(batch_actions).to(device)
 
-            scale_std = np.std(batch_scales)
+            scale_std = np.std(batch_scales)#计算偏差
             batch_scale_v = torch.FloatTensor(batch_scales).to(device)
 
             optimizer.zero_grad()
@@ -111,7 +111,7 @@ if __name__ == "__main__":
             entropy_loss_v = -ENTROPY_BETA * entropy_v
             loss_v = loss_policy_v + entropy_loss_v
             loss_v.backward()
-            nn_utils.clip_grad_norm_(net.parameters(), GRAD_L2_CLIP)
+            nn_utils.clip_grad_norm_(net.parameters(), GRAD_L2_CLIP)#clip the parameters
             optimizer.step()
 
             # calc KL-div
