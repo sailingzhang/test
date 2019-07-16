@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+sys.path.append("../../")
+sys.path.append("../../ptan-master")
+import logging
+from log_init import log_init
+
+
 import gym
 import ptan
 import numpy as np

@@ -128,9 +128,9 @@ if __name__ == "__main__":
     writer = SummaryWriter(comment="-frozenlake-nonslippery")
 
     full_batch = []
-    for iter_no, batch in enumerate(iterate_batches(env, net, BATCH_SIZE)):#返回的batch是一个生命周期，且是有序的。batch中只有all_rewards,obs,action，没有step reward
+    for iter_no, batch in enumerate(iterate_batches(env, net, BATCH_SIZE)):#返回的batch是一个生命周期，且是有序的。batch中只有all_rewards,obs,action，没有step reward, batch=[(),()]
         reward_mean = float(np.mean(list(map(lambda s: s.reward, batch))))#这里的reward是一个episode 的总reward.因为经过筛选，这里的reward_mean应该越来越高。
-        full_batch, obs, acts, reward_bound = filter_batch(full_batch + batch, PERCENTILE)#叠加输入，返回被筛选后的原始batch,obs,acts,和筛选边界。
+        full_batch, obs, acts, reward_bound = filter_batch(full_batch + batch, PERCENTILE)#叠加输入，返回被筛选后的原始batch,obs,acts,和筛选边界。full_batch=[(),()]
         if not full_batch:
             continue
         obs_v = torch.FloatTensor(obs)
