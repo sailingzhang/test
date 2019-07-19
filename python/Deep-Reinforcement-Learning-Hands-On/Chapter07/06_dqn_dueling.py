@@ -54,7 +54,7 @@ class DuelingDQN(nn.Module):
         conv_out = self.conv(fx).view(fx.size()[0], -1)
         val = self.fc_val(conv_out)
         adv = self.fc_adv(conv_out)
-        return val + adv - adv.mean()
+        return val + adv - adv.mean()#这里是duel最关键的地方。
 
 
 if __name__ == "__main__":

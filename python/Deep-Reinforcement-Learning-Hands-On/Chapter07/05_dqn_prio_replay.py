@@ -57,11 +57,11 @@ class PrioReplayBuffer:
         samples = [self.buffer[idx] for idx in indices]
         total = len(self.buffer)
         weights = (total * probs[indices]) ** (-beta)
-        weights /= weights.max()
+        weights /= weights.max()#重新计算一下weight,计算loss用。
         return samples, indices, np.array(weights, dtype=np.float32)
 
     def update_priorities(self, batch_indices, batch_priorities):
-        for idx, prio in zip(batch_indices, batch_priorities):
+        for idx, prio in zip(batch_indices, batch_priorities):#batch_priorities 其实就是 loss值。
             self.priorities[idx] = prio
 
 
@@ -80,7 +80,7 @@ def calc_loss(batch, batch_weights, net, tgt_net, gamma, device="cpu"):
     next_state_values[done_mask] = 0.0
 
     expected_state_action_values = next_state_values.detach() * gamma + rewards_v
-    losses_v = batch_weights_v * (state_action_values - expected_state_action_values) ** 2
+    losses_v = batch_weights_v * (state_action_values - expected_state_action_values) ** 2 #权重越大，起的作用越大。
     logging.debug("type(state_action_values)={},type(expected_state_action_values)={},type(losses_v)={},losses_v'size={}".format(type(state_action_values),type(expected_state_action_values),type(losses_v),losses_v.size()))
     return losses_v.mean(), losses_v + 1e-5
 
