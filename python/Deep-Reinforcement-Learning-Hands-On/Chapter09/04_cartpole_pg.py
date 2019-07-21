@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+import sys
+sys.path.append("../../")
+sys.path.append("../../ptan-master")
+import logging
+from log_init import log_init
+
 import gym
 import ptan
 import numpy as np
@@ -32,6 +38,7 @@ class PGN(nn.Module):
 
 
 if __name__ == "__main__":
+    log_init("04_cartpole_pg.log")
     env = gym.make("CartPole-v0")
     writer = SummaryWriter(comment="-cartpole-pg")
 
@@ -60,7 +67,7 @@ if __name__ == "__main__":
         batch_actions.append(int(exp.action))
         batch_scales.append(exp.reward - baseline)
         """
-        这里的value是没有discount的，也就是不累加历史reward. 这可能跟cartpole是及时reward，不需要历史reward的原因。
+        这里的value是没有discount的，也就是不累加历史reward. 这里不是看的太懂。
         """
 
         # handle new rewards

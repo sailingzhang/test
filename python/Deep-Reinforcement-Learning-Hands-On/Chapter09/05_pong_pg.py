@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+import sys
+sys.path.append("../../")
+sys.path.append("../../ptan-master")
+import logging
+from log_init import log_init
+
 import gym
 import ptan
 import numpy as np
@@ -48,13 +54,14 @@ class MeanBuffer:
 
 
 if __name__ == "__main__":
+    log_init("05_pong_pg.log")
     parser = argparse.ArgumentParser()
     parser.add_argument("--cuda", default=False, action="store_true", help="Enable cuda")
     parser.add_argument("-n", '--name', required=True, help="Name of the run")
     args = parser.parse_args()
     device = torch.device("cuda" if args.cuda else "cpu")
 
-    envs = [make_env() for _ in range(ENV_COUNT)]
+    envs = [make_env() for _ in range(ENV_COUNT)]#注意这里是一多个env
     writer = SummaryWriter(comment="-pong-pg-" + args.name)
 
     net = common.AtariPGN(envs[0].observation_space.shape, envs[0].action_space.n).to(device)
