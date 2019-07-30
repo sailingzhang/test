@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+
+import sys
+sys.path.append("../../")
+sys.path.append("../../ptan-master")
+import logging
+from log_init import log_init
+
 import os
 import random
 import argparse
