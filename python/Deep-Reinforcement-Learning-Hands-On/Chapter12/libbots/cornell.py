@@ -35,9 +35,11 @@ def iterate_entries(data_dir, file_name):
             yield list(map(str.strip, l.split(SEPARATOR)))
 
 
-def read_movie_set(data_dir, genre_filter):
+def read_movie_set(data_dir, genre_filter):#找到对应类型的编号
     res = set()
     for parts in iterate_entries(data_dir, "movie_titles_metadata.txt"):
+        # logging.debug("parts={}".format(parts))
+        #  parts=['m600', 'waxwork', '1988', '6.00', '2596', "['comedy', 'fantasy', 'horror']"]
         m_id, m_genres = parts[0], parts[5]
         if m_genres.find(genre_filter) != -1:
             res.add(m_id)
@@ -47,12 +49,15 @@ def read_movie_set(data_dir, genre_filter):
 def read_phrases(data_dir, movies=None):
     res = {}
     for parts in iterate_entries(data_dir, "movie_lines.txt"):
+        # logging.debug("parts={}".format(parts))
+        #  parts=['L19548', 'u197', 'm13', 'DR. RUMACK', "Can't you take a guess?"]
         l_id, m_id, l_str = parts[0], parts[2], parts[4]
         if movies and m_id not in movies:
             continue
         tokens = utils.tokenize(l_str)
         if tokens:
             res[l_id] = tokens
+            logging.debug("l_id={},tokens={}".format(l_id,tokens))
     return res
 
 

@@ -3,7 +3,7 @@
 import sys
 sys.path.append("../../")
 sys.path.append("../../ptan-master")
-import logging
+import logging as log
 from log_init import log_init
 
 import os
@@ -25,7 +25,7 @@ BATCH_SIZE = 32
 LEARNING_RATE = 1e-3
 MAX_EPOCHES = 100
 
-log = logging.getLogger("train")
+# log = logging.getLogger("train")
 
 TEACHER_PROB = 0.5
 
@@ -45,7 +45,9 @@ def run_test(test_data, net, end_token, device="cpu"):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(format="%(asctime)-15s %(levelname)s %(message)s", level=logging.INFO)
+    # logging.basicConfig(format="%(asctime)-15s %(levelname)s %(message)s", level=logging.INFO)
+    log_init("../../train_crossent.log")
+    logging.debug("enter")
     parser = argparse.ArgumentParser()
     parser.add_argument("--data", required=True, help="Category to use for training. "
                                                       "Empty string to train on full dataset")
