@@ -100,6 +100,8 @@ def load_data(genre_filter, max_tokens=MAX_TOKENS, min_token_freq=MIN_TOKEN_FEQ)
     log.info("Counting freq of words...")
     word_counts = collections.Counter()
     for dial in dialogues:
+        logging.debug("dial={}".format(dial))
+        # len(dial)=3,dial=[["what's", 'wrong', 'with', 'you', '?', '!', 'tell', 'him', "i'm", 'not', 'here', '!'], ['but', 'i', "can't", '-', '-'], ['just', 'do', 'it', '!']]
         for p in dial:
             word_counts.update(p)
     freq_set = set(map(lambda p: p[0], filter(lambda p: p[1] >= min_token_freq, word_counts.items())))

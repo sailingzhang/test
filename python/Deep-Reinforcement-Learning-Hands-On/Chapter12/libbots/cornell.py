@@ -71,7 +71,7 @@ def load_conversations(data_dir, lines, movies=None):
         l_ids = dial_s.strip("[]").split(", ")
         l_ids = list(map(lambda s: s.strip("'"), l_ids))
         dial = [lines[l_id] for l_id in l_ids if l_id in lines]
-        logging.debug("len(dial)={},dial={}".format(len(dial),dial))
+        # logging.debug("len(dial)={},dial={}".format(len(dial),dial))
 # len(dial)=3,dial=[["what's", 'wrong', 'with', 'you', '?', '!', 'tell', 'him', "i'm", 'not', 'here', '!'], ['but', 'i', "can't", '-', '-'], ['just', 'do', 'it', '!']]
 
         if dial:
