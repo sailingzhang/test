@@ -58,6 +58,7 @@ def read_phrases(data_dir, movies=None):
         if tokens:
             res[l_id] = tokens
             logging.debug("l_id={},tokens={}".format(l_id,tokens))
+            # l_id=L869,tokens=['like', 'my', 'fear', 'of', 'wearing', 'pastels', '?']
     return res
 
 
@@ -70,6 +71,9 @@ def load_conversations(data_dir, lines, movies=None):
         l_ids = dial_s.strip("[]").split(", ")
         l_ids = list(map(lambda s: s.strip("'"), l_ids))
         dial = [lines[l_id] for l_id in l_ids if l_id in lines]
+        logging.debug("len(dial)={},dial={}".format(len(dial),dial))
+# len(dial)=3,dial=[["what's", 'wrong', 'with', 'you', '?', '!', 'tell', 'him', "i'm", 'not', 'here', '!'], ['but', 'i', "can't", '-', '-'], ['just', 'do', 'it', '!']]
+
         if dial:
             res.append(dial)
     return res

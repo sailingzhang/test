@@ -46,7 +46,7 @@ def run_test(test_data, net, end_token, device="cpu"):
 
 if __name__ == "__main__":
     # logging.basicConfig(format="%(asctime)-15s %(levelname)s %(message)s", level=logging.INFO)
-    log_init("../../train_crossent.log")
+    log_init("../../12_train_crossent.log")
     logging.debug("enter")
     parser = argparse.ArgumentParser()
     parser.add_argument("--data", required=True, help="Category to use for training. "

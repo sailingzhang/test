@@ -138,7 +138,7 @@ def dialogues_to_pairs(dialogues, max_tokens=None):
         for phrase in dial:
             if prev_phrase is not None:
                 if max_tokens is None or (len(prev_phrase) <= max_tokens and len(phrase) <= max_tokens):
-                    result.append((prev_phrase, phrase))
+                    result.append((prev_phrase, phrase))#前后成对，即使是单数也能成对。
             prev_phrase = phrase
     return result
 
