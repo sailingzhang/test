@@ -57,7 +57,7 @@ def read_phrases(data_dir, movies=None):
         tokens = utils.tokenize(l_str)
         if tokens:
             res[l_id] = tokens
-            logging.debug("l_id={},tokens={}".format(l_id,tokens))
+            # logging.debug("l_id={},tokens={}".format(l_id,tokens))
             # l_id=L869,tokens=['like', 'my', 'fear', 'of', 'wearing', 'pastels', '?']
     return res
 

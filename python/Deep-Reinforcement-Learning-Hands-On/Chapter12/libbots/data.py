@@ -57,6 +57,8 @@ def encode_phrase_pairs(phrase_pairs, emb_dict, filter_unknows=True):
     result = []
     for p1, p2 in phrase_pairs:
         p = encode_words(p1, emb_dict), encode_words(p2, emb_dict)
+        # logging.debug("train_p={}".format(p))
+        #  train_p=([1, 25, 740, 1128, 297, 0, 142, 116, 1233, 371, 4, 750, 1233, 371, 1485, 14, 2], [1, 3241, 173, 260, 955, 173, 2])
         if unk_token in p[0] or unk_token in p[1]:
             continue
         result.append(p)
@@ -97,17 +99,24 @@ def load_data(genre_filter, max_tokens=MAX_TOKENS, min_token_freq=MIN_TOKEN_FEQ)
     log.info("Loaded %d dialogues with %d phrases, generating training pairs",
              len(dialogues), sum(map(len, dialogues)))
     phrase_pairs = dialogues_to_pairs(dialogues, max_tokens=max_tokens)
+    # logging.debug("phrase_pairs={}".format(phrase_pairs))
+    # phrase_pairs=[([],[]),([],[]),([],[])]
     log.info("Counting freq of words...")
     word_counts = collections.Counter()
     for dial in dialogues:
-        logging.debug("dial={}".format(dial))
-        # len(dial)=3,dial=[["what's", 'wrong', 'with', 'you', '?', '!', 'tell', 'him', "i'm", 'not', 'here', '!'], ['but', 'i', "can't", '-', '-'], ['just', 'do', 'it', '!']]
+        # logging.debug("dial={}".format(dial))
+        # [['that', 'was', 'really', 'great', '.'], ['was', 'it', 'okay', '?'], ['yeah', '!'], ['what', 'did', 'you', 'guys', 'think', '?'], ['slides', 'go', 'with', 'it', '.'], ['behind', 'me', '.', "i'm", 'making', 'these', 'slides', 'out', 'of', 'these', 'old', 'pictures', 'and', 'paintings', 'and', 'stuff', '.']]
         for p in dial:
             word_counts.update(p)
+            # logging.debug("p={}".format(p))
+            #p=['that', 'was', 'really', 'great', '.']
     freq_set = set(map(lambda p: p[0], filter(lambda p: p[1] >= min_token_freq, word_counts.items())))
+    # logging.debug("freq_set={}".format(freq_set))
+    # freq_set={'abc','efg'}
     log.info("Data has %d uniq words, %d of them occur more than %d",
              len(word_counts), len(freq_set), min_token_freq)
     phrase_dict = phrase_pairs_dict(phrase_pairs, freq_set)
+    # logging.debug("phrase_dict={}".format(phrase_dict))
     return phrase_pairs, phrase_dict
 
 
