@@ -90,6 +90,8 @@ class RNN(torch.nn.Module):
     
     def forward(self,input):
         # input应该为(batch_size,seq_len,input_szie)
+        logging.debug("type(input)={},input.size()={},input.size(0)={},input.size(1)={}".format(type(input),input.size(),input.size(0),input.size(1)))
+        # DEBUG type(input)=<class 'torch.Tensor'>,input.size()=torch.Size([2, 4, 12]),input.size(0)=2,input.size(1)=4
         self.hidden = self.initHidden(input.size(0))
         out,self.hidden = self.lstm(input,self.hidden)
         return out,self.hidden
@@ -110,7 +112,11 @@ def lstmTest():
     # input (seq_len, batch, input_size) 包含特征的输入序列，如果设置了batch_first，则batch为第一维
     input = torch.rand(2,4,12)
     out,hidden = model(input)
-    logging.debug("type(out)={},out={},type(hidden)={},hidden={}".format(type(out),out,type(hidden),hidden))
+    # logging.debug("type(out)={},type(hidden)={}".format(type(out),type(hidden)))
+    # logging.debug("type(out)={},out.size={},type(hidden)={},hidden.size={}".format(type(out),out.size(),type(hidden),hidden.size()))
+    logging.debug("out.size={},hidden[0].size={},hidden[1].size={}".format(out.size(),hidden[0].size(),hidden[1].size()))
+    # DEBUG out.size=torch.Size([2, 4, 10]),hidden[0].size=torch.Size([3, 2, 10]),hidden[1].size=torch.Size([3, 2, 10])
+
 
 if __name__ == '__main__':
     log_init("pytorch.log")

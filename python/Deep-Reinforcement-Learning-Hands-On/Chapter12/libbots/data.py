@@ -100,7 +100,8 @@ def load_data(genre_filter, max_tokens=MAX_TOKENS, min_token_freq=MIN_TOKEN_FEQ)
              len(dialogues), sum(map(len, dialogues)))
     phrase_pairs = dialogues_to_pairs(dialogues, max_tokens=max_tokens)
     # logging.debug("phrase_pairs={}".format(phrase_pairs))
-    # phrase_pairs=[([],[]),([],[]),([],[])]
+    # phrase_pairs=[(["how","are","you"],["i","am","fine"]),(["f**k","you"],["come"]),(["I"],["you"])]
+     
     log.info("Counting freq of words...")
     word_counts = collections.Counter()
     for dial in dialogues:
