@@ -91,6 +91,7 @@ if __name__ == "__main__":
         for batch in data.iterate_batches(train_data, BATCH_SIZE):
             optimiser.zero_grad()
             input_seq, out_seq_list, _, out_idx = model.pack_batch(batch, net.emb, device)
+            #input_seq 是PackedSequence， out_seq_list是去年end_token 的[PackedSequence,PackedSequence,PackedSequence....]
             enc = net.encode(input_seq)
 
             net_results = []
