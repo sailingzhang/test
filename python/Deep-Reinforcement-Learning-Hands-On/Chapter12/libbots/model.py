@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 import torch.nn.utils.rnn as rnn_utils
 import torch.nn.functional as F
+import logging
 
 from . import utils
 
@@ -97,15 +98,21 @@ def pack_batch_no_out(batch, embeddings, device="cpu"):
     batch.sort(key=lambda s: len(s[0]), reverse=True)
     input_idx, output_idx = zip(*batch)
     # create padded matrix of inputs
+    # logging.debug("batch={},input_idx={},output_idx={}".format(batch,input_idx,output_idx))
+    #input_idx,output_idx=([1, 116, 43, 173, 114, 211, 43, 20, 193, 82, 5, 162, 43, 173, 2], [1, 13, 583, 295, 531, 14, 2])
     lens = list(map(len, input_idx))
     input_mat = np.zeros((len(batch), lens[0]), dtype=np.int64)
     for idx, x in enumerate(input_idx):
-        input_mat[idx, :len(x)] = x
+        input_mat[idx, :len(x)] = x #之前有sort,所以input_mat的维度满足最大len
     input_v = torch.tensor(input_mat).to(device)
     input_seq = rnn_utils.pack_padded_sequence(input_v, lens, batch_first=True)
     # lookup embeddings
     r = embeddings(input_seq.data)
+    # DEBUG input_v.size()=torch.Size([32, 19]),type(r)=<class 'torch.Tensor'>,r.size=torch.Size([294, 50]),type(input_seq.data)=<class 'torch.Tensor'>,input_seq.data.size()=torch.Size([294])
+
     emb_input_seq = rnn_utils.PackedSequence(r, input_seq.batch_sizes)
+    logging.debug("input_v.size()={},type(r)={},r.size={},type(input_seq.data)={},input_seq.data.size()={}".format(input_v.size(),type(r),r.size(),type(input_seq.data),input_seq.data.size()))
+
     return emb_input_seq, input_idx, output_idx
 
 

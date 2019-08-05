@@ -63,9 +63,13 @@ if __name__ == "__main__":
     phrase_pairs, emb_dict = data.load_data(genre_filter=args.data)
     log.info("Obtained %d phrase pairs with %d uniq words",
              len(phrase_pairs), len(emb_dict))
+  # phrase_pairs=[(["how","are","you"],["i","am","fine"]),(["f**k","you"],["come"]),(["I"],["you"])]
+    #emb_dict = {UNKNOWN_TOKEN: 0, BEGIN_TOKEN: 1, END_TOKEN: 2,"how":3,"are":4,"you":5}
     data.save_emb_dict(saves_path, emb_dict)
     end_token = emb_dict[data.END_TOKEN]
     train_data = data.encode_phrase_pairs(phrase_pairs, emb_dict)
+    # logging.debug("train_data={}".format(train_data))
+    #train_data=[([1, 33, 34, 2], [1, 42, 43, 14, 2]), ([1, 54, 4, , 59, 20, 2], [1, 60, 35, 61, 62, 5, 63, 64, 14, 2]), ([1, 11, 72, 45, 73, 51, 74, 75, 14, 2], [1, 42, 29, 14, 2])]
     rand = np.random.RandomState(data.SHUFFLE_SEED)
     rand.shuffle(train_data)
     log.info("Training data converted, got %d samples", len(train_data))
