@@ -105,21 +105,22 @@ def pack_batch_no_out(batch, embeddings, device="cpu"):
     for idx, x in enumerate(input_idx):
         input_mat[idx, :len(x)] = x #之前有sort,所以input_mat的维度满足最大len
     input_v = torch.tensor(input_mat).to(device)
-    input_seq = rnn_utils.pack_padded_sequence(input_v, lens, batch_first=True)
+    input_seq = rnn_utils.pack_padded_sequence(input_v, lens, batch_first=True)#这个返回的也是PackedSequence
     logging.debug("input_seq={}".format(input_seq))
     # lookup embeddings
     r = embeddings(input_seq.data)
     # DEBUG input_v.size()=torch.Size([32, 19]),type(r)=<class 'torch.Tensor'>,r.size=torch.Size([294, 50]),type(input_seq.data)=<class 'torch.Tensor'>,input_seq.data.size()=torch.Size([294])
 
-    emb_input_seq = rnn_utils.PackedSequence(r, input_seq.batch_sizes)
-    logging.debug("input_v.size()={},type(r)={},r.size={},type(input_seq.data)={},input_seq.data.size()={}".format(input_v.size(),type(r),r.size(),type(input_seq.data),input_seq.data.size()))
-
+    emb_input_seq = rnn_utils.PackedSequence(r, input_seq.batch_sizes)#这里可能是把embedding的input.data重新转成PackedSequence,好像只有PackedSequence才能输入RNN
+    # logging.debug("type(emb_input_seq)={}".format(type(emb_input_seq)))
     return emb_input_seq, input_idx, output_idx
 
 
-def pack_input(input_data, embeddings, device="cpu"):
+def pack_input(input_data, embeddings, device="cpu"):#input_data是单个的seq
     input_v = torch.LongTensor([input_data]).to(device)
     r = embeddings(input_v)
+    # logging.debug("input_data={},input_v.size()={}".format(input_data,input_v.size()))
+    # DEBUG input_data=[1, 252, 4, 69, 14, 5, 157, 678, 421, 99, 3195, 14],input_v.size()=torch.Size([1, 12])
     return rnn_utils.pack_padded_sequence(r, [len(input_data)], batch_first=True)
 
 
@@ -129,7 +130,7 @@ def pack_batch(batch, embeddings, device="cpu"):
     # prepare output sequences, with end token stripped
     output_seq_list = []
     for out in output_idx:
-        output_seq_list.append(pack_input(out[:-1], embeddings, device))
+        output_seq_list.append(pack_input(out[:-1], embeddings, device))#-1是支持最后一个
     return emb_input_seq, output_seq_list, input_idx, output_idx
 
 
