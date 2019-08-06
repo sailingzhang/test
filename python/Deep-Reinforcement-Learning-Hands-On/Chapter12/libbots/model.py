@@ -106,6 +106,7 @@ def pack_batch_no_out(batch, embeddings, device="cpu"):
         input_mat[idx, :len(x)] = x #之前有sort,所以input_mat的维度满足最大len
     input_v = torch.tensor(input_mat).to(device)
     input_seq = rnn_utils.pack_padded_sequence(input_v, lens, batch_first=True)
+    logging.debug("input_seq={}".format(input_seq))
     # lookup embeddings
     r = embeddings(input_seq.data)
     # DEBUG input_v.size()=torch.Size([32, 19]),type(r)=<class 'torch.Tensor'>,r.size=torch.Size([294, 50]),type(input_seq.data)=<class 'torch.Tensor'>,input_seq.data.size()=torch.Size([294])
