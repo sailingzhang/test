@@ -60,7 +60,18 @@ def tenfortest():
     logging.debug("type(test)={},type(testdata)={},id(test)={},id(testdata)={}".format(type(test),type(testdata),id(test),id(testdata)))
     logging.debug("testdata={}".format(testdata))
 
-	
+
+class Base(object):
+    def __init__(self,input):
+        logging.debug("input={}".format(input))
+    
+class Child(Base):
+    def fun1(self):
+        logging.debug("hi hello")
+
+def classTest():
+    a = Child(2)
+    a.fun1()
 
 if __name__ == "__main__":
     log_init("test.log")
@@ -69,4 +80,5 @@ if __name__ == "__main__":
     # gatherTest()
     # squeezeTest()
     # maxTest()
-    tenfortest()
+    # tenfortest()
+    classTest()
