@@ -295,6 +295,6 @@ def faceServe(port):
 
 if __name__ == '__main__':
     port = sys.argv[1]
-    log_init.log_init("/var/log/local_face_server_"+port+".log")
+    log_init.log_init("local_face_server_test_"+port+".log")
     threading.Thread(target=timer).start()
     faceServe(port)

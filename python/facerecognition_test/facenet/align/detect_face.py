@@ -86,6 +86,7 @@ class Network(object):
         data_dict = np.load(data_path, encoding='latin1').item() #pylint: disable=no-member
 
         for op_name in data_dict:
+            logging.debug("op_name={}".format(op_name))
             with tf.variable_scope(op_name, reuse=True):
                 for param_name, data in iteritems(data_dict[op_name]):
                     try:
@@ -105,6 +106,7 @@ class Network(object):
         for fed_layer in args:
             if isinstance(fed_layer, string_types):
                 try:
+                    logging.debug("fed_layer={}".format(fed_layer))
                     fed_layer = self.layers[fed_layer]
                 except KeyError:
                     raise KeyError('Unknown layer name fed: %s' % fed_layer)
