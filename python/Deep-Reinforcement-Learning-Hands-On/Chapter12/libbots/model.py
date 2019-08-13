@@ -112,7 +112,8 @@ def pack_batch_no_out(batch, embeddings, device="cpu"):
     # DEBUG input_v.size()=torch.Size([32, 19]),type(r)=<class 'torch.Tensor'>,r.size=torch.Size([294, 50]),type(input_seq.data)=<class 'torch.Tensor'>,input_seq.data.size()=torch.Size([294])
 
     emb_input_seq = rnn_utils.PackedSequence(r, input_seq.batch_sizes)#这里可能是把embedding的input.data重新转成PackedSequence,好像只有PackedSequence才能输入RNN
-    # logging.debug("type(emb_input_seq)={}".format(type(emb_input_seq)))
+    # logging.debug("type(emb_input_seq)={},emb_input_seq.data.size()={}".format(type(emb_input_seq),emb_input_seq.data.size()))
+    # DEBUG type(emb_input_seq)=<class 'torch.nn.utils.rnn.PackedSequence'>,emb_input_seq.data.size()=torch.Size([294, 50])
     return emb_input_seq, input_idx, output_idx
 
 
@@ -130,7 +131,7 @@ def pack_batch(batch, embeddings, device="cpu"):
     # prepare output sequences, with end token stripped
     output_seq_list = []
     for out in output_idx:
-        output_seq_list.append(pack_input(out[:-1], embeddings, device))#-1是支持最后一个
+        output_seq_list.append(pack_input(out[:-1], embeddings, device))#-1是去掉最后一个
     return emb_input_seq, output_seq_list, input_idx, output_idx
 
 
