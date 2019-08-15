@@ -56,7 +56,7 @@ if __name__ == "__main__":
     parser.add_argument("-n", "--name", required=True, help="Name of the run")
     args = parser.parse_args()
     device = torch.device("cuda" if args.cuda else "cpu")
-
+    #python train_crossent.py --data comedy -n crossent-comedy
     saves_path = os.path.join(SAVES_DIR, args.name)
     os.makedirs(saves_path, exist_ok=True)
 

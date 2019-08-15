@@ -114,6 +114,8 @@ def pack_batch_no_out(batch, embeddings, device="cpu"):
     emb_input_seq = rnn_utils.PackedSequence(r, input_seq.batch_sizes)#这里可能是把embedding的input.data重新转成PackedSequence,好像只有PackedSequence才能输入RNN
     # logging.debug("type(emb_input_seq)={},emb_input_seq.data.size()={}".format(type(emb_input_seq),emb_input_seq.data.size()))
     # DEBUG type(emb_input_seq)=<class 'torch.nn.utils.rnn.PackedSequence'>,emb_input_seq.data.size()=torch.Size([294, 50])
+    logging.debug("input_seq.batch_sizes={}".format(input_seq.batch_sizes))
+    #  batch_sizes=tensor([32, 32, 32, 32, 30, 29, 26, 22, 21, 20, 18, 10,  7,  5,  4,  2,  2,  2]),
     return emb_input_seq, input_idx, output_idx
 
 
