@@ -91,7 +91,7 @@ if __name__ == "__main__":
         for batch in data.iterate_batches(train_data, BATCH_SIZE):
             optimiser.zero_grad()
             input_seq, out_seq_list, _, out_idx = model.pack_batch(batch, net.emb, device)
-            #input_seq 是PackedSequence， out_seq_list是去年end_token 的[PackedSequence,PackedSequence,PackedSequence....]
+            #input_seq 是batch 的PackedSequence， out_seq_list是去掉end_token 的[PackedSequence,PackedSequence,PackedSequence....]
             enc = net.encode(input_seq)
             # logging.debug("enc[0].size()={},enc[1].size()={}".format(enc[0].size(),enc[1].size()))
             # DEBUG enc[0].size()=torch.Size([1, 32, 512]),enc[1].size()=torch.Size([1, 32, 512])
