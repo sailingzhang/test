@@ -97,6 +97,7 @@ if __name__ == "__main__":
             # DEBUG enc[0].size()=torch.Size([1, 32, 512]),enc[1].size()=torch.Size([1, 32, 512])
             net_results = []
             net_targets = []
+            # logging.debug("out_idx={}".format(out_idx))
             for idx, out_seq in enumerate(out_seq_list):
                 ref_indices = out_idx[idx][1:]
                 enc_item = net.get_encoded_item(enc, idx)

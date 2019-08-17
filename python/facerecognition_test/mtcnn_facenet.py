@@ -65,18 +65,44 @@ import threading
 
 class detectface:
     def __init__(self):
+        logging.info("detectface init begin")
         self.minsize = 20 # minimum size of face
         self.threshold = [ 0.7, 0.8, 0.9 ]  # three steps's threshold
         self.factor = 0.65 # scale factor
-        self.gpu_memory_fraction = 1.0
+        self.gpu_memory_fraction = 0.4
         self.cropped_image_size = 80
 
-        with tf.Graph().as_default():
-            gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=self.gpu_memory_fraction)
-            sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=False))
-            with sess.as_default():
-                self.pnet, self.rnet, self.onet = align.detect_face.create_mtcnn(sess, None)
-    
+
+        
+
+        # with tf.Graph().as_default():
+        #     gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=self.gpu_memory_fraction)
+        #     sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=False))
+        #     with sess.as_default():
+        #         self.pnet, self.rnet, self.onet = align.detect_face.create_mtcnn(sess, None)
+
+
+        self.grpah = tf.Graph().as_default()
+        # with tf.Graph().as_default():
+        gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=self.gpu_memory_fraction,allow_growth = True)
+        self.sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=False,device_count={'GPU':0, 'CPU':2}))
+        # self.sess = tf.Session()
+        self.sess.as_default()
+        self.pnet, self.rnet, self.onet = align.detect_face.create_mtcnn(self.sess, None)
+        # tf.get_default_graph().finalize()
+
+        logging.info("detectface init end")
+    def reload(self):
+        self.sess.close()
+        # self.grpah = tf.Graph().as_default()
+        # with tf.Graph().as_default():
+        tf.reset_default_graph()
+        gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=self.gpu_memory_fraction)
+        self.sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=False))
+        self.sess.as_default()
+        self.pnet, self.rnet, self.onet = align.detect_face.create_mtcnn(self.sess, None)
+        # tf.get_default_graph().finalize()
+
     def defect_path(self,image_path):
         try:
             img = misc.imread(image_path)
@@ -84,7 +110,8 @@ class detectface:
             errorMessage = '{}: {}'.format(image_path, e)
             logging.error(errorMessage)
             return
-        self.detect_img(img)
+        # self.reload()
+        return self.detect_img(img)
 
     def detect_img(self,img,faceMinsize=0):
         picwidth = img.shape[1]
