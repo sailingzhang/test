@@ -91,15 +91,19 @@ if __name__ == "__main__":
         for batch in data.iterate_batches(train_data, BATCH_SIZE):
             optimiser.zero_grad()
             input_seq, out_seq_list, _, out_idx = model.pack_batch(batch, net.emb, device)
-            #input_seq 是batch 的PackedSequence， out_seq_list是去掉end_token 的[PackedSequence,PackedSequence,PackedSequence....]
+            # logging.debug("out_idx={}".format(out_idx))
+            #input_seq 是batch 的PackedSequence， out_seq_list 是去掉end_token 的[PackedSequence,PackedSequence,PackedSequence....]
+            # out_idx 是([1, 116, 43, 173, 114, 211, 43, 20, 193, 82, 5, 162, 43, 173, 2], [1, 13, 583, 295, 531, 14, 2])
             enc = net.encode(input_seq)
             # logging.debug("enc[0].size()={},enc[1].size()={}".format(enc[0].size(),enc[1].size()))
             # DEBUG enc[0].size()=torch.Size([1, 32, 512]),enc[1].size()=torch.Size([1, 32, 512])
             net_results = []
             net_targets = []
-            # logging.debug("out_idx={}".format(out_idx))
+            
             for idx, out_seq in enumerate(out_seq_list):
-                ref_indices = out_idx[idx][1:]
+                ref_indices = out_idx[idx][1:]# 输入 out_seq有begin 没有end,  输出 ref_indices 没有begin 但有end
+                # logging.debug("ref_indices={}".format(ref_indices))
+                #  ref_indices  [ 116, 43, 173, 114, 211, 43, 20, 193, 82, 5, 162, 43, 173, 2]
                 enc_item = net.get_encoded_item(enc, idx)
                 if random.random() < TEACHER_PROB:
                     r = net.decode_teacher(enc_item, out_seq)
