@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+
+import sys
+sys.path.append("../../")
+sys.path.append("../../ptan-master")
+import logging as log
+from log_init import log_init
 import os
 import random
 import argparse
@@ -20,7 +26,10 @@ BATCH_SIZE = 16
 LEARNING_RATE = 1e-4
 MAX_EPOCHES = 10000
 
-log = logging.getLogger("train")
+
+
+
+# log = logging.getLogger("train")
 
 
 def run_test(test_data, net, end_token, device="cpu"):
@@ -41,6 +50,7 @@ def run_test(test_data, net, end_token, device="cpu"):
 
 
 if __name__ == "__main__":
+    log_init("../../12_train_scst.log")
     logging.basicConfig(format="%(asctime)-15s %(levelname)s %(message)s", level=logging.INFO)
     parser = argparse.ArgumentParser()
     parser.add_argument("--data", required=True, help="Category to use for training. Empty string to train on full dataset")
@@ -66,6 +76,8 @@ if __name__ == "__main__":
     log.info("Training data converted, got %d samples", len(train_data))
     train_data = data.group_train_data(train_data)
     test_data = data.group_train_data(test_data)
+    # logging.debug("train_data={}".format(train_data))#这是一对多。
+    #train_data= [((1, 162, 13, 134, 578, 31, 2), [[1, 44, 14, 36, 14, 67, 43, 1228, 27, 9, 3415, 31, 2]]), ((1, 252, 46, 172, 4, 876, 299, 173, 2), [[1, 62, 31, 275, 13, 1931, 96, 25, 162, 43, 31, 2]])]
     log.info("Train set has %d phrases, test %d", len(train_data), len(test_data))
 
     rev_emb_dict = {idx: word for word, idx in emb_dict.items()}
@@ -98,6 +110,7 @@ if __name__ == "__main__":
                 batch_idx += 1
                 optimiser.zero_grad()
                 input_seq, input_batch, output_batch = model.pack_batch_no_out(batch, net.emb, device)
+                logging.debug("input_patch={},output_batch={}".format(input_batch,output_batch))
                 enc = net.encode(input_seq)
 
                 net_policies = []
