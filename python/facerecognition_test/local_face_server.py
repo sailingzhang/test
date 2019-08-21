@@ -301,11 +301,20 @@ def test():
         ret = detect.defect_path("pic/timg.jpg")
         logging.debug("ret={}".format(ret))
     
+def test_remoteserver():
+    logging.info("enter")
+    a = tf.constant(1.0)
+    b = a+2
+    c = a*3
+    with tf.Session("grpc://127.0.0.1:2222") as sess:
+        logging.info("c={}".format(sess.run(c)))
 
 if __name__ == '__main__':
     port = sys.argv[1]
     log_init.log_init("/var/log/local_face_server_"+port+".log")
-    logging.info("start gServer")
+    logging.info("start_t gServer")
+    # test_remoteserver()
     test()
-    threading.Thread(target=timer).start()
-    faceServe(port)
+    
+    # threading.Thread(target=timer).start()
+    # faceServe(port)
