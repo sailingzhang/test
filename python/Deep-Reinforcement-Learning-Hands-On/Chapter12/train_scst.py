@@ -76,7 +76,8 @@ if __name__ == "__main__":
     log.info("Training data converted, got %d samples", len(train_data))
     train_data = data.group_train_data(train_data)
     test_data = data.group_train_data(test_data)
-    logging.debug("train_data={}".format(train_data))
+    # logging.debug("train_data={}".format(train_data))#这是一对多。
+    #train_data= [((1, 162, 13, 134, 578, 31, 2), [[1, 44, 14, 36, 14, 67, 43, 1228, 27, 9, 3415, 31, 2]]), ((1, 252, 46, 172, 4, 876, 299, 173, 2), [[1, 62, 31, 275, 13, 1931, 96, 25, 162, 43, 31, 2]])]
     log.info("Train set has %d phrases, test %d", len(train_data), len(test_data))
 
     rev_emb_dict = {idx: word for word, idx in emb_dict.items()}
@@ -109,6 +110,9 @@ if __name__ == "__main__":
                 batch_idx += 1
                 optimiser.zero_grad()
                 input_seq, input_batch, output_batch = model.pack_batch_no_out(batch, net.emb, device)
+                # logging.debug("input_batch={},output_batch={}".format(input_batch,output_batch))
+                # DEBUG input_patch=((1, 88, 555, 93, 16, 3072, 123, 371, 2836, 13, 60, 797, 3685, 3416, 13, 551, 197, 14, 2), (1, 5, 1588, 46, 176, 14, 5, 6, 13, 83, 241, 93, 488, 51, 94, 155, 43, 14, 2), (1, 195, 918, 35, 1372, 173, 2), (1, 1512, 4, 2202, 14, 2))
+                # output_batch=([[1, 21, 22, 366, 13, 230, 16, 493, 31, 2]], [[1, 408, 745, 93, 14, 2]], [[1, 2285, 14, 114, 51, 77, 3820, 69, 276, 177, 1219, 46, 620, 390, 14, 2]], [[1, 252, 20, 2]], [[1, 91, 417, 4267, 353, 14, 2]],  [[1, 25, 309, 14, 2]], [[1, 275, 13, 1252, 31, 31, 2]], [[1, 387, 31, 2]], [[1, 658, 14, 2]], [[1, 105, 43, 67, 14, 2]],[[1, 387, 14, 2]], [[1, 1736, 4, 626, 173, 2]], [[1, 45, 663, 4, 2178, 14, 2]])
                 enc = net.encode(input_seq)
 
                 net_policies = []
