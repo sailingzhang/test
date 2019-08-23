@@ -129,6 +129,13 @@ if __name__ == "__main__":
                     item_enc = net.get_encoded_item(enc, idx)
                     r_argmax, actions = net.decode_chain_argmax(item_enc, beg_embedding, data.MAX_TOKENS,
                                                                 stop_at_token=end_token)
+                    # logging.debug("r_argmax={},actions={}".format(r_argmax,actions))
+    #      r_argmax=tensor([[-13.8743, -13.3444,  -0.6508,  ...,  -9.0594,  -8.2211, -13.8162],
+    #     [-12.8510, -12.9394,   0.0347,  ..., -11.4010,  -5.9313, -12.9519],
+    #     [-10.5749, -10.3025,   3.0768,  ...,  -7.3702,  -6.2836, -10.4178],
+    #     [-15.4379, -15.1566,   4.2264,  ..., -12.3431,  -5.4633, -15.4407],
+    #     [-13.7221, -13.5014,   5.6320,  ..., -11.3432,  -5.0856, -13.8136]],
+    #    grad_fn=<CatBackward>),actions=[5, 207, 146, 14, 2]
                     argmax_bleu = utils.calc_bleu_many(actions, ref_indices)
                     bleus_argmax.append(argmax_bleu)
 
@@ -156,6 +163,16 @@ if __name__ == "__main__":
                         net_actions.extend(actions)
                         net_advantages.extend([sample_bleu - argmax_bleu] * len(actions))
                         bleus_sample.append(sample_bleu)
+                        # logging.debug("r_sample={},actions={},sample_bleu - argmax_bleu={},sample_bleu={}".format(r_sample,actions,sample_bleu - argmax_bleu,sample_bleu))
+                        # r_sample=tensor([[-11.8627, -11.6143,   0.1806,  ...,  -7.5314,  -7.5344, -12.2520],
+                        #                 [-13.6776, -13.7746,   1.1900,  ..., -12.3752,  -9.5009, -14.1215],
+                        #                 [-18.6475, -18.5967,   2.3067,  ..., -11.8892, -14.9023, -18.9035],
+                        #                 ...,
+                        #                 [-13.8555, -13.4120,   2.7234,  ...,  -8.7176,  -7.8477, -13.8406],
+                        #                 [-16.6379, -15.8786,   3.4330,  ..., -14.6808,  -9.7412, -16.6886],
+                        #                 [-12.5753, -12.2687,   9.0037,  ...,  -9.5653,  -6.3280, -12.6913]],
+                        #             grad_fn=<CatBackward>),actions=[44, 171, 13, 14, 292, 64, 13, 241, 93, 108, 31, 2],sample_bleu - argmax_bleu=0.030587696549717394,sample_bleu=0.12309149097933275
+
                     dial_shown = True
 
                 if not net_policies:
@@ -171,6 +188,24 @@ if __name__ == "__main__":
                 loss_v = loss_policy_v
                 loss_v.backward()
                 optimiser.step()
+
+                logging.debug("policies_v={},log_prob_v={}".format(policies_v,log_prob_v))
+# DEBUG policies_v=tensor([[-15.4101, -14.7879,  -1.3527,  ...,  -9.7199,  -9.6832, -15.6094],
+#         [-11.4530, -11.6235,  -0.2077,  ..., -10.1832,  -6.4477, -11.5834],
+#         [-11.2781, -11.0824,   2.4559,  ...,  -7.4973,  -9.5905, -11.4410],
+#         ...,
+#         [ -8.1145,  -7.6796,  -0.3306,  ...,  -8.2129,  -8.0966,  -8.2438],
+#         [-11.2506, -10.6323,   1.8057,  ...,  -9.3147,  -9.4105, -11.4355],
+#         [-15.9063, -15.4262,   9.4001,  ...,  -9.7805,  -9.1733, -16.2098]],
+#        grad_fn=<CatBackward>),log_prob_v=tensor([[-23.4501, -22.8279,  -9.3927,  ..., -17.7598, -17.7231, -23.6493],
+#         [-18.7960, -18.9666,  -7.5507,  ..., -17.5262, -13.7907, -18.9264],
+#         [-17.9625, -17.7668,  -4.2284,  ..., -14.1816, -16.2748, -18.1253],
+#         ...,
+#         [-14.6695, -14.2346,  -6.8856,  ..., -14.7679, -14.6516, -14.7988],
+#         [-18.2389, -17.6206,  -5.1826,  ..., -16.3030, -16.3988, -18.4238],
+#         [-25.3614, -24.8813,  -0.0550,  ..., -19.2356, -18.6284, -25.6649]],
+#        grad_fn=<LogSoftmaxBackward>)
+
 
                 tb_tracker.track("advantage", adv_v, batch_idx)
                 tb_tracker.track("loss_policy", loss_policy_v, batch_idx)
