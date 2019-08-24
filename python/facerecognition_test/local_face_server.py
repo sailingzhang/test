@@ -57,6 +57,8 @@ import threading
 import gc
 # import string
 import psutil
+
+from mtcnnpytorch.src import detect_faces
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 
@@ -298,14 +300,21 @@ def faceServe(port):
 def test():
     detect = detectface()
     while True:
+        logging.debug("begin")
         ret = detect.defect_path("pic/timg.jpg")
         logging.debug("ret={}".format(ret))
-    
+
+def pytorch_test():
+    image = Image.open("pic/timg.jpg")
+    bounding_boxes, landmarks = detect_faces(image)
+    logging.debug("bounding_boxes={}".format(bounding_boxes))
 
 if __name__ == '__main__':
     port = sys.argv[1]
-    log_init.log_init("/var/log/local_face_server_"+port+".log")
+    log_init.log_init("p_local_face_server_"+port+".log")
     logging.info("start gServer")
-    test()
-    threading.Thread(target=timer).start()
-    faceServe(port)
+    pytorch_test()
+
+    # test()
+    # threading.Thread(target=timer).start()
+    # faceServe(port)

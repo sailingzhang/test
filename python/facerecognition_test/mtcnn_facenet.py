@@ -59,6 +59,7 @@ import logging
 # import time
 import threading
 
+
 # log_init.log_init("/tmp/mtcnn_facenet.log")
 # logging.debug("mtcnn module ok")
 
