@@ -58,7 +58,7 @@ import uuid
 import logging
 # import time
 import threading
-
+from mtcnnpytorch.src.get_nets import create_pytorch_mtcnn
 
 # log_init.log_init("/tmp/mtcnn_facenet.log")
 # logging.debug("mtcnn module ok")
@@ -92,6 +92,8 @@ class detectface:
         self.pnet, self.rnet, self.onet = align.detect_face.create_mtcnn(self.sess, None)
         # tf.get_default_graph().finalize()
 
+        # self.pnet, self.rnet, self.onet =create_pytorch_mtcnn()
+        
         logging.info("detectface init end")
     def reload(self):
         self.sess.close()
