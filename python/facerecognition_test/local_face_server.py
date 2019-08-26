@@ -23,6 +23,7 @@ sys.path.append(work_dir+"/faceproto/")
 # sys.path.append(work_dir+"/facenet/src/")
 sys.path.append(work_dir+"/facenet/")
 sys.path.append(work_dir+"/facenet/align")
+# sys.path.append(work_dir+"/mtcnnpytorch")
 
 from concurrent import futures
 import time
@@ -57,6 +58,8 @@ import threading
 import gc
 # import string
 import psutil
+
+from mtcnnpytorch.src.detector import detect_faces,pytorchDetect
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 
@@ -298,7 +301,11 @@ def faceServe(port):
 def test():
     detect = detectface()
     while True:
+        bTime = time.time()
+        logging.debug("tensorflow begin")
         ret = detect.defect_path("pic/timg.jpg")
+        eTime = time.time()
+        logging.debug("tensorflow end,costTime={}".format(eTime-bTime))
         logging.debug("ret={}".format(ret))
     
 def test_remoteserver():
@@ -309,12 +316,26 @@ def test_remoteserver():
     with tf.Session("grpc://127.0.0.1:2222") as sess:
         logging.info("c={}".format(sess.run(c)))
 
+    
+
+def pytorch_test():
+    image = Image.open("pic/timg.jpg")
+    # image = Image.open("pic/test.jpg")
+    pytorchD = pytorchDetect()
+    while True:
+        bTime = time.time()
+        logging.info("pytorch begin")
+        # bounding_boxes, landmarks = detect_faces(image)
+        bounding_boxes, landmarks = pytorchD.detect_faces(image)
+        eTime = time.time()
+        logging.info("pytorch end,costTime={}".format(eTime-bTime))
+        logging.info("bounding_boxes={}".format(bounding_boxes))
+
 if __name__ == '__main__':
     port = sys.argv[1]
-    log_init.log_init("/var/log/local_face_server_"+port+".log")
-    logging.info("start_t gServer")
-    # test_remoteserver()
+    log_init.log_init("p_local_face_server_"+port+".log")
+    logging.info("start gServer")
+    # pytorch_test()
     test()
-    
     # threading.Thread(target=timer).start()
     # faceServe(port)

@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+import sys
+sys.path.append("../../")
+sys.path.append("../../ptan-master")
+import logging as log
+from log_init import log_init
+
 import os
 import time
 import math
@@ -51,6 +57,7 @@ def calc_logprob(mu_v, var_v, actions_v):
 
 
 if __name__ == "__main__":
+    log_init("../../14_train_a2c.log")
     parser = argparse.ArgumentParser()
     parser.add_argument("--cuda", default=False, action='store_true', help='Enable CUDA')
     parser.add_argument("-n", "--name", required=True, help="Name of the run")

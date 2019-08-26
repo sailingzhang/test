@@ -33,6 +33,7 @@ import tensorflow as tf
 #from math import floor
 import cv2
 import os
+import  logging
 
 def layer(op):
     """Decorator for composable network layers."""
@@ -67,6 +68,7 @@ class Network(object):
         self.terminals = []
         # Mapping from layer names to layers
         self.layers = dict(inputs)
+        logging.debug("type(ipputs)={},type(self.layers)={}".format(inputs,self.layers))
         # If true, the resulting variables are set as trainable
         self.trainable = trainable
 
@@ -83,8 +85,12 @@ class Network(object):
         ignore_missing: If true, serialized weights for missing layers are ignored.
         """
         data_dict = np.load(data_path, encoding='latin1').item() #pylint: disable=no-member
+        # data_load = np.load(data_path, encoding='latin1')
+        # data_dict = data_load.item()
+        # logging.debug("type(data_load)={},type(data_dict)={}".format(type(data_load),type(data_dict)))
 
         for op_name in data_dict:
+            # logging.debug("op_name={}".format(op_name))
             with tf.variable_scope(op_name, reuse=True):
                 for param_name, data in iteritems(data_dict[op_name]):
                     try:
@@ -285,15 +291,27 @@ def create_mtcnn(sess, model_path):
         data = tf.placeholder(tf.float32, (None,24,24,3), 'input')
         rnet = RNet({'data':data})
         rnet.load(os.path.join(model_path, 'det2.npy'), sess)
+
     with tf.variable_scope('onet'):
         data = tf.placeholder(tf.float32, (None,48,48,3), 'input')
         onet = ONet({'data':data})
         onet.load(os.path.join(model_path, 'det3.npy'), sess)
-        
+    
+
     pnet_fun = lambda img : sess.run(('pnet/conv4-2/BiasAdd:0', 'pnet/prob1:0'), feed_dict={'pnet/input:0':img})
     rnet_fun = lambda img : sess.run(('rnet/conv5-2/conv5-2:0', 'rnet/prob1:0'), feed_dict={'rnet/input:0':img})
     onet_fun = lambda img : sess.run(('onet/conv6-2/conv6-2:0', 'onet/conv6-3/conv6-3:0', 'onet/prob1:0'), feed_dict={'onet/input:0':img})
     return pnet_fun, rnet_fun, onet_fun
+
+
+
+
+def creat_mtcnn_pytorch(model_path):
+    if not model_path:
+        model_path,_ = os.path.split(os.path.realpath(__file__))   
+
+
+
 
 def detect_face(img, minsize, pnet, rnet, onet, threshold, factor):
     """Detects faces in an image, and returns bounding boxes and points for them.
