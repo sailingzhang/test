@@ -303,7 +303,7 @@ def test():
     while True:
         bTime = time.time()
         logging.debug("tensorflow begin")
-        ret = detect.defect_path("pic/timg.jpg")
+        ret = detect.defect_path("pic/test.jpg")
         eTime = time.time()
         logging.debug("tensorflow end,costTime={}".format(eTime-bTime))
         logging.debug("ret={}".format(ret))

@@ -28,6 +28,7 @@ from __future__ import division
 from __future__ import print_function
 from six import string_types, iteritems
 
+from memory_profiler import profile
 import numpy as np
 import tensorflow as tf
 #from math import floor
@@ -218,7 +219,37 @@ class Network(object):
         normalize = tf.reduce_sum(target_exp, axis, keepdims=True)
         softmax = tf.div(target_exp, normalize, name)
         return softmax
-    
+
+class my_pnet_fun():
+    def __init__(self,sess):
+        self.sess = sess
+    # @profile 
+    def __call__(self,img):
+        logging.debug("pnet img.shape={}".format(img.shape))
+        ret = self.sess.run(('pnet/conv4-2/BiasAdd:0', 'pnet/prob1:0'), feed_dict={'pnet/input:0':img})
+        logging.debug("pnet ret[0].shape={},ret[1].shape={}".format(ret[0].shape,ret[1].shape))
+        return ret
+class my_rnet_fun():
+    def __init__(self,sess):
+        self.sess = sess
+    # @profile 
+    def __call__(self,img):
+        logging.debug("rnet img.shape={}".format(img.shape))
+        ret = self.sess.run(('rnet/conv5-2/conv5-2:0', 'rnet/prob1:0'), feed_dict={'rnet/input:0':img})
+        logging.debug("rnet ret[0].shape={},ret[1].shape={}".format(ret[0].shape,ret[1].shape))
+        return ret
+
+class my_onet_fun():
+    def __init__(self,sess):
+        self.sess = sess
+    # @profile 
+    def __call__(self,img):
+        logging.debug("onet img.shape={}".format(img.shape))
+        ret = self.sess.run(('onet/conv6-2/conv6-2:0', 'onet/conv6-3/conv6-3:0', 'onet/prob1:0'), feed_dict={'onet/input:0':img})
+        logging.debug("onet ret[0].shape={},ret[1].shape={},ret[2].shape={}".format(ret[0].shape,ret[1].shape,ret[2].shape))
+        return ret       
+
+
 class PNet(Network):
     def setup(self):
         (self.feed('data') #pylint: disable=no-value-for-parameter, no-member
@@ -298,10 +329,12 @@ def create_mtcnn(sess, model_path):
         onet.load(os.path.join(model_path, 'det3.npy'), sess)
     
 
-    pnet_fun = lambda img : sess.run(('pnet/conv4-2/BiasAdd:0', 'pnet/prob1:0'), feed_dict={'pnet/input:0':img})
-    rnet_fun = lambda img : sess.run(('rnet/conv5-2/conv5-2:0', 'rnet/prob1:0'), feed_dict={'rnet/input:0':img})
-    onet_fun = lambda img : sess.run(('onet/conv6-2/conv6-2:0', 'onet/conv6-3/conv6-3:0', 'onet/prob1:0'), feed_dict={'onet/input:0':img})
-    return pnet_fun, rnet_fun, onet_fun
+    # pnet_fun = lambda img : sess.run(('pnet/conv4-2/BiasAdd:0', 'pnet/prob1:0'), feed_dict={'pnet/input:0':img})
+    # rnet_fun = lambda img : sess.run(('rnet/conv5-2/conv5-2:0', 'rnet/prob1:0'), feed_dict={'rnet/input:0':img})
+    # onet_fun = lambda img : sess.run(('onet/conv6-2/conv6-2:0', 'onet/conv6-3/conv6-3:0', 'onet/prob1:0'), feed_dict={'onet/input:0':img})
+    # return pnet_fun, rnet_fun, onet_fun
+
+    return my_pnet_fun(sess),my_rnet_fun(sess),my_onet_fun(sess)
 
 
 
