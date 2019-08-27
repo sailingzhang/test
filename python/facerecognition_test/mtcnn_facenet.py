@@ -84,17 +84,17 @@ class detectface:
         #         self.pnet, self.rnet, self.onet = align.detect_face.create_mtcnn(sess, None)
 
 
-        # self.grpah = tf.Graph().as_default()
-        # # with tf.Graph().as_default():
-        # gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=self.gpu_memory_fraction,allow_growth = True)
-        # # self.sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=False,device_count={'GPU':0, 'CPU':2}))
-        # # self.sess = tf.Session("grpc://127.0.0.1:2222")
-        # self.sess = tf.Session()
-        # self.sess.as_default()
-        # self.pnet, self.rnet, self.onet = align.detect_face.create_mtcnn(self.sess, None)
-        # tf.get_default_graph().finalize()
+        self.grpah = tf.Graph().as_default()
+        # with tf.Graph().as_default():
+        gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=self.gpu_memory_fraction,allow_growth = True)
+        # self.sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=False,device_count={'GPU':0, 'CPU':2}))
+        # self.sess = tf.Session("grpc://127.0.0.1:2222")
+        self.sess = tf.Session()
+        self.sess.as_default()
+        self.pnet, self.rnet, self.onet = align.detect_face.create_mtcnn(self.sess, None)
+        tf.get_default_graph().finalize()
 
-        self.pnet, self.rnet, self.onet =create_pytorch_mtcnn()
+        # self.pnet, self.rnet, self.onet =create_pytorch_mtcnn()
         
         logging.info("detectface init end")
     def reload(self):
