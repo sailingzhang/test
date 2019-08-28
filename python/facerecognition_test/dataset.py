@@ -5,6 +5,7 @@ import logging
 import numpy as np
 import shutil
 from scipy import misc
+import imageio
 
 class trainDataBase:
     def __init__(self):
@@ -136,7 +137,8 @@ class LocalDataManger(trainDataBase):
         srcxPathFile = yIdPathDir+"/"+xId+self.srcSuffix
         embxPathFile = yIdPathDir+"/"+xId+self.embSuffix
         if srcx is not None and True == self.isSyncSrcx:
-            misc.imsave(srcxPathFile, srcx)
+            imageio.imwrite(srcxPathFile,srcx)
+            # misc.imsave(srcxPathFile, srcx)
             # with open(srcxPathFile, 'wb') as f:
             #      f.write(srcx)
         if embx is not None:
