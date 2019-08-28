@@ -40,7 +40,7 @@ def test_net(net, env, count=10, device="cpu"):
         while True:
             obs_v = ptan.agent.float32_preprocessor([obs]).to(device)
             mu_v = net(obs_v)[0]
-            action = mu_v.squeeze(dim=0).data.cpu().numpy()
+            action = mu_v.squeeze(dim=0).data.cpu().numpy()#直接用中心值期望得到action
             action = np.clip(action, -1, 1)
             obs, reward, done, _ = env.step(action)
             rewards += reward
@@ -51,6 +51,7 @@ def test_net(net, env, count=10, device="cpu"):
 
 
 def calc_logprob(mu_v, var_v, actions_v):
+    #action_v 是一个连续值，根据分布得到一个连续值的概率。
     p1 = - ((mu_v - actions_v) ** 2) / (2*var_v.clamp(min=1e-3))
     p2 = - torch.log(torch.sqrt(2 * math.pi * var_v))
     return p1 + p2
