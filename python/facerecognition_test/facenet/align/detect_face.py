@@ -85,7 +85,7 @@ class Network(object):
         session: The current TensorFlow session
         ignore_missing: If true, serialized weights for missing layers are ignored.
         """
-        data_dict = np.load(data_path, encoding='latin1').item() #pylint: disable=no-member
+        data_dict = np.load(data_path, encoding='latin1',allow_pickle=True).item() #pylint: disable=no-member
         # data_load = np.load(data_path, encoding='latin1')
         # data_dict = data_load.item()
         # logging.debug("type(data_load)={},type(data_dict)={}".format(type(data_load),type(data_dict)))

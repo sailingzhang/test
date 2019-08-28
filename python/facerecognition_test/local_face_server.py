@@ -47,6 +47,7 @@ import random
 from time import sleep
 from io import BytesIO 
 from PIL import Image, ImageFilter
+import imageio
 from scipy import misc
 # from myface.mtcnn_facenet import detectface,facenet_ebeding,myclassify,myclassify2,TvuFace
 from mtcnn_facenet import detectface,facenet_ebeding,myclassify,myclassify2,TvuFace

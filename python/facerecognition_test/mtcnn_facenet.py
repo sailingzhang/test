@@ -27,6 +27,7 @@ from __future__ import print_function
 
 
 from scipy import misc
+import imageio
 import sys
 
 
@@ -113,7 +114,8 @@ class detectface:
 
     def defect_path(self,image_path):
         try:
-            img = misc.imread(image_path)
+            # img = misc.imread(image_path)
+            img = imageio.imread(image_path)
         except (IOError, ValueError, IndexError) as e:
             errorMessage = '{}: {}'.format(image_path, e)
             logging.error(errorMessage)
