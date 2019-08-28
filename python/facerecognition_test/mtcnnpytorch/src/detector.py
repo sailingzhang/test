@@ -4,7 +4,7 @@ from torch.autograd import Variable
 from .get_nets import PNet, RNet, ONet
 from .box_utils import nms, calibrate_box, get_image_boxes, convert_to_square
 from .first_stage import run_first_stage
-
+import logging
 
 
 
@@ -52,6 +52,7 @@ class pytorchDetect:
         bounding_boxes = []
 
         # run P-Net on different scales
+        logging.debug("pytorch len(scales)={}".format(len(scales)))
         for s in scales:
             boxes = run_first_stage(image, pnet, scale=s, threshold=thresholds[0])
             bounding_boxes.append(boxes)

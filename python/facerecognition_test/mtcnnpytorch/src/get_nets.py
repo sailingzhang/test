@@ -5,7 +5,6 @@ import torch.nn.functional as F
 from collections import OrderedDict
 import numpy as np
 import logging
-import padding_same
 
 
 modelbasepath="/home/sailingzhang/winshare/develop/source/mygit/test/python/facerecognition_test/mtcnnpytorch/"

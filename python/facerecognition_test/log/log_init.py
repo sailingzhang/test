@@ -11,8 +11,8 @@ def log_init(log_file):
     #                     filename=log_file,
     #                     filemode='w')
 
-    console = logging.StreamHandler()
-    console.setLevel(logging.DEBUG)
+    # console = logging.StreamHandler()
+    # console.setLevel(logging.DEBUG)
     #formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
     formatter = logging.Formatter('%(asctime)s %(filename)s[line:%(lineno)d][%(funcName)s] %(levelname)s %(message)s')
 
@@ -23,7 +23,7 @@ def log_init(log_file):
     logger.setLevel('DEBUG')
     logger.addHandler(handler)
 
-    console.setFormatter(formatter)
+    # console.setFormatter(formatter)
     # logging.getLogger('').addHandler(console)
 
     # logging.Formatter(fmt='%(asctime)s',datefmt='%Y-%m-%d,%H:%M:%S.%f')

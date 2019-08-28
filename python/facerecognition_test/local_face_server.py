@@ -47,6 +47,7 @@ import random
 from time import sleep
 from io import BytesIO 
 from PIL import Image, ImageFilter
+import imageio
 from scipy import misc
 # from myface.mtcnn_facenet import detectface,facenet_ebeding,myclassify,myclassify2,TvuFace
 from mtcnn_facenet import detectface,facenet_ebeding,myclassify,myclassify2,TvuFace
@@ -303,7 +304,7 @@ def test():
     while True:
         bTime = time.time()
         logging.debug("tensorflow begin")
-        ret = detect.defect_path("pic/test.jpg")
+        ret = detect.defect_path("pic/timg.jpg")
         eTime = time.time()
         logging.debug("tensorflow end,costTime={}".format(eTime-bTime))
         logging.debug("ret={}".format(ret))
