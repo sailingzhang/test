@@ -303,6 +303,7 @@ def faceServe(port):
 
 def test():
     detect = detectface()
+    return
     while True:
         bTime = time.time()
         logging.debug("tensorflow begin")
@@ -339,6 +340,6 @@ if __name__ == '__main__':
     log_init.log_init("p_local_face_server_"+port+".log")
     logging.info("start gServer")
     # pytorch_test()
-    # test()
+    test()
     # threading.Thread(target=timer).start()
-    faceServe(port)
+    # faceServe(port)

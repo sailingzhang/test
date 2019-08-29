@@ -334,7 +334,56 @@ def create_mtcnn(sess, model_path):
     # onet_fun = lambda img : sess.run(('onet/conv6-2/conv6-2:0', 'onet/conv6-3/conv6-3:0', 'onet/prob1:0'), feed_dict={'onet/input:0':img})
     # return pnet_fun, rnet_fun, onet_fun
 
+    # allname=""
+    # tensor_name_list = [tensor.name for tensor in tf.get_default_graph().as_graph_def().node]
+    # for tensor_name in tensor_name_list:
+    #     allname +=("\n"+tensor_name)
+    # logging.debug("allname={}".format(allname))
+
+    writer = tf.summary.FileWriter("logs/", sess.graph)
+
+
     return my_pnet_fun(sess),my_rnet_fun(sess),my_onet_fun(sess)
+
+
+
+
+
+def myprelu(inp, name):
+    with tf.variable_scope(name):
+        i = int(inp.get_shape()[-1])
+        alpha = tf.get_variable('alpha', (i,), trainable=True)
+        output = tf.nn.relu(inp) + tf.multiply(alpha, -tf.nn.relu(-inp))
+    return output
+def mysoftmax(target, axis, name=None):
+    max_axis = tf.reduce_max(target, axis, keepdims=True)
+    target_exp = tf.exp(target-max_axis)
+    normalize = tf.reduce_sum(target_exp, axis, keepdims=True)
+    softmax = tf.div(target_exp, normalize, name)
+    return softmax
+def create_myself_mtcnn(sess,model_path):
+    if not model_path:
+        model_path,_ = os.path.split(os.path.realpath(__file__))    
+    with tf.variable_scope('pnet'):
+        data = tf.placeholder(tf.float32, (None,None,None,3), 'input')
+        filter = np.zeros(shape=(3, 3, data.get_shape()[-1], 10), dtype=np.float32)
+        conv1 = tf.nn.conv2d(data, filter,bias_initializer=tf.zeros_initializer(), strides=[1,1,1,1], padding="VALID",activation_fn=myprelu,name="conv1")
+        pool1 = tf.nn.max_pool(conv1,ksize=[1, 2, 2, 1],strides=[1, 2, 2, 1],padding="SAME",name="pool1")
+        filter2 = np.zeros(shape=(3, 3, pool1.get_shape()[-1], 16), dtype=np.float32)
+        conv2 = tf.nn.conv2d(pool1, filter2,bias_initializer=tf.zeros_initializer(), strides=[1,1,1,1], padding="VALID",activation_fn=myprelu,name="conv2")
+        filter3 = np.zeros(shape=(3, 3, conv2.get_shape()[-1], 32), dtype=np.float32)
+        conv3 = tf.nn.conv2d(conv2, filter3,bias_initializer=tf.zeros_initializer(), strides=[1,1,1,1], padding="VALID",activation_fn=myprelu,name="conv3")
+        filter4 = np.zeros(shape=(1, 1, conv3.get_shape()[-1], 2), dtype=np.float32)
+        conv4 = tf.nn.conv2d(conv3, filter4,bias_initializer=tf.zeros_initializer(), strides=[1,1,1,1], padding="SAME",activation_fn=myprelu,name="conv4")
+        mysoftmax(conv4,3)
+        conv5 = tf.nn.conv2d(conv3, filters, strides=[1,2,2,1], padding="SAME",activation_fn=myprelu)
+
+
+
+
+
+
+
 
 
 
