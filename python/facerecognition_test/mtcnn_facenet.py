@@ -92,7 +92,8 @@ class detectface:
         # self.sess = tf.Session("grpc://127.0.0.1:2222")
         self.sess = tf.Session()
         self.sess.as_default()
-        self.pnet, self.rnet, self.onet = align.detect_face.create_mtcnn(self.sess, None)
+        # self.pnet, self.rnet, self.onet = align.detect_face.create_mtcnn(self.sess, None)
+        self.pnet, self.rnet, self.onet = align.detect_face.create_myself_mtcnn(self.sess, None)
         tf.get_default_graph().finalize()
 
         # self.pnet, self.rnet, self.onet =create_pytorch_mtcnn()

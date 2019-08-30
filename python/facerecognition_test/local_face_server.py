@@ -300,6 +300,14 @@ def faceServe(port):
         gServer.stop(0)
 
 
+def  biastest():
+    a=tf.constant([[1,1],[2,2],[3,3],[4,4]],dtype=tf.float32)
+    b=tf.constant([1,-1],dtype=tf.float32)
+    c=tf.constant([1],dtype=tf.float32)
+    logging.debug("a.shape={},b.shape={}".format(a.get_shape(),b.get_shape()))
+    with tf.Session() as sess:
+        ret = sess.run(tf.nn.bias_add(a, b))
+        logging.debug("bias add,ret={}".format(ret))
 
 def test():
     detect = detectface()
@@ -339,6 +347,7 @@ if __name__ == '__main__':
     port = sys.argv[1]
     log_init.log_init("p_local_face_server_"+port+".log")
     logging.info("start gServer")
+    # biastest()
     # pytorch_test()
     test()
     # threading.Thread(target=timer).start()
