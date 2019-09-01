@@ -29,7 +29,7 @@ class Net(nn.Module):
         return self.net(x)
 
 
-def evaluate(env, net):
+def evaluate(env, net):#It is maybe the fitness function.
     obs = env.reset()
     reward = 0.0
     steps = 0
@@ -56,11 +56,11 @@ def sample_noise(net):
 
 
 def eval_with_noise(env, net, noise):
-    old_params = net.state_dict()
+    old_params = net.state_dict() # save the parameters
     for p, p_n in zip(net.parameters(), noise):
         p.data += NOISE_STD * p_n
-    r, s = evaluate(env, net)
-    net.load_state_dict(old_params)
+    r, s = evaluate(env, net)# the core of ES, F=F(parameter +noise)
+    net.load_state_dict(old_params)#reload the old parameter.
     return r, s
 
 
@@ -71,7 +71,7 @@ def train_step(net, batch_noise, batch_reward, writer, step_idx):
     s = np.std(norm_reward)
     if abs(s) > 1e-6:
         norm_reward /= s
-
+    #batch_noise should be [[np,np,np],[np,np,np],[np,np,np]]
     for noise, reward in zip(batch_noise, norm_reward):
         if weighted_noise is None:
             weighted_noise = [reward * p_n for p_n in noise]
@@ -100,7 +100,7 @@ if __name__ == "__main__":
         batch_reward = []
         batch_steps = 0
         for _ in range(MAX_BATCH_EPISODES):
-            noise, neg_noise = sample_noise(net)
+            noise, neg_noise = sample_noise(net) #noise=[np,np,np]
             batch_noise.append(noise)
             batch_noise.append(neg_noise)
             reward, steps = eval_with_noise(env, net, noise)

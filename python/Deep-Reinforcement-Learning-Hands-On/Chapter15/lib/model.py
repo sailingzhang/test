@@ -18,7 +18,7 @@ class ModelActor(nn.Module):
             nn.Linear(HID_SIZE, act_size),
             nn.Tanh(),
         )
-        self.logstd = nn.Parameter(torch.zeros(act_size))
+        self.logstd = nn.Parameter(torch.zeros(act_size)) #这个是action的分布方差，学习而得
 
     def forward(self, x):
         return self.mu(x)

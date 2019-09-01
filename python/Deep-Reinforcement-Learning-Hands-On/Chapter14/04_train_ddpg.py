@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+import sys
+sys.path.append("../../")
+sys.path.append("../../ptan-master")
+import logging as log
+from log_init import log_init
+
 import os
 import ptan
 import time
@@ -105,7 +111,7 @@ if __name__ == "__main__":
                 # train actor
                 act_opt.zero_grad()
                 cur_actions_v = act_net(states_v)
-                actor_loss_v = -crt_net(states_v, cur_actions_v)
+                actor_loss_v = -crt_net(states_v, cur_actions_v)#为什么把产生的value当loss?
                 actor_loss_v = actor_loss_v.mean()
                 actor_loss_v.backward()
                 act_opt.step()

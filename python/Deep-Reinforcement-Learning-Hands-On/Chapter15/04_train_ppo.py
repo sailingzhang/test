@@ -164,13 +164,13 @@ if __name__ == "__main__":
                     states_v = traj_states_v[batch_ofs:batch_ofs + PPO_BATCH_SIZE]
                     actions_v = traj_actions_v[batch_ofs:batch_ofs + PPO_BATCH_SIZE]
                     batch_adv_v = traj_adv_v[batch_ofs:batch_ofs + PPO_BATCH_SIZE].unsqueeze(-1)
-                    batch_ref_v = traj_ref_v[batch_ofs:batch_ofs + PPO_BATCH_SIZE]
+                    batch_ref_v = traj_ref_v[batch_ofs:batch_ofs + PPO_BATCH_SIZE]#notice batch_adv_v and batch_ref_v, there are the different from precedent.
                     batch_old_logprob_v = old_logprob_v[batch_ofs:batch_ofs + PPO_BATCH_SIZE]
 
                     # critic training
                     opt_crt.zero_grad()
                     value_v = net_crt(states_v)
-                    loss_value_v = F.mse_loss(value_v.squeeze(-1), batch_ref_v)
+                    loss_value_v = F.mse_loss(value_v.squeeze(-1), batch_ref_v)#pay attention to batch_ref_v
                     loss_value_v.backward()
                     opt_crt.step()
 
