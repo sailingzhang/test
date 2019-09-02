@@ -65,6 +65,7 @@ def eval_with_noise(env, net, noise):
 
 
 def train_step(net, batch_noise, batch_reward, writer, step_idx):
+    # pay attention to batch_noise,bath_reward, you could take train_step as an interface to update parameters,which batch_noise and batch _reward are the arguments
     weighted_noise = None
     norm_reward = np.array(batch_reward)
     norm_reward -= np.mean(norm_reward)
@@ -100,7 +101,7 @@ if __name__ == "__main__":
         batch_reward = []
         batch_steps = 0
         for _ in range(MAX_BATCH_EPISODES):
-            noise, neg_noise = sample_noise(net) #noise=[np,np,np]
+            noise, neg_noise = sample_noise(net) #noise=[np,np,np],the noise and net's parameter are one to one correspondence.
             batch_noise.append(noise)
             batch_noise.append(neg_noise)
             reward, steps = eval_with_noise(env, net, noise)
@@ -117,7 +118,7 @@ if __name__ == "__main__":
         if m_reward > 199:
             print("Solved in %d steps" % step_idx)
             break
-
+#add noise,get rewards relationed to the noise parameters, and update parameters by the noise and rewards.
         train_step(net, batch_noise, batch_reward, writer, step_idx)
         writer.add_scalar("reward_mean", m_reward, step_idx)
         writer.add_scalar("reward_std", np.std(batch_reward), step_idx)

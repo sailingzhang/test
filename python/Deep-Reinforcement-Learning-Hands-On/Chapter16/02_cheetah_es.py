@@ -119,7 +119,7 @@ def train_step(optimizer, net, batch_noise, batch_reward, writer, step_idx, nois
         p.grad = -update
         m_updates.append(torch.norm(update))
     writer.add_scalar("update_l2", np.mean(m_updates), step_idx)
-    optimizer.step()
+    optimizer.step() #why to update gradient.
 
 
 def worker_func(worker_id, params_queue, rewards_queue, device, noise_std):
