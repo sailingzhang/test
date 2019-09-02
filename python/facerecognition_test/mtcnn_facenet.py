@@ -90,10 +90,14 @@ class detectface:
         gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=self.gpu_memory_fraction,allow_growth = True)
         # self.sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=False,device_count={'GPU':0, 'CPU':2}))
         # self.sess = tf.Session("grpc://127.0.0.1:2222")
-        self.sess = tf.Session()
+        # self.sess = tf.Session()
+
+        cpu_num = 4
+        tvuconfig = tf.ConfigProto(device_count={"CPU": cpu_num},inter_op_parallelism_threads = cpu_num,intra_op_parallelism_threads = cpu_num,log_device_placement=True)
+        self.sess = tf.Session(config = tvuconfig)
         self.sess.as_default()
         # self.pnet, self.rnet, self.onet = align.detect_face.create_mtcnn(self.sess, None)
-        self.pnet, self.rnet, self.onet = align.detect_face.create_myself_mtcnn(self.sess, None)
+        self.pnet, self.rnet, self.onet = align.detect_face.create_tvu_mtcnn(self.sess, None)
         tf.get_default_graph().finalize()
 
         # self.pnet, self.rnet, self.onet =create_pytorch_mtcnn()

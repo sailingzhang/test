@@ -168,6 +168,7 @@ class Network(object):
             if relu:
                 # ReLU non-linearity
                 output = tf.nn.relu(output, name=scope.name)
+            logging.debug("name={},inp'shape={},output'shape={}".format(name,inp.get_shape(),output.get_shape()))
             return output
 
     @layer
@@ -176,21 +177,25 @@ class Network(object):
             i = int(inp.get_shape()[-1])
             alpha = self.make_var('alpha', shape=(i,))
             output = tf.nn.relu(inp) + tf.multiply(alpha, -tf.nn.relu(-inp))
+        logging.debug("name={},inp'shape={},output'shape={}".format(name,inp.get_shape(),output.get_shape()))    
         return output
 
     @layer
     def max_pool(self, inp, k_h, k_w, s_h, s_w, name, padding='SAME'):
         self.validate_padding(padding)
-        return tf.nn.max_pool(inp,
+        output = tf.nn.max_pool(inp,
                               ksize=[1, k_h, k_w, 1],
                               strides=[1, s_h, s_w, 1],
                               padding=padding,
                               name=name)
+        logging.debug("name={},inp'shape={},output'shape={}".format(name,inp.get_shape(),output.get_shape()))
+        return output
 
     @layer
     def fc(self, inp, num_out, name, relu=True):
         with tf.variable_scope(name):
             input_shape = inp.get_shape()
+            logging.debug("old fc shape={}".format(input_shape))
             if input_shape.ndims == 4:
                 # The input is spatial. Vectorize it first.
                 dim = 1
@@ -202,8 +207,9 @@ class Network(object):
             weights = self.make_var('weights', shape=[dim, num_out])
             biases = self.make_var('biases', [num_out])
             op = tf.nn.relu_layer if relu else tf.nn.xw_plus_b
-            fc = op(feed_in, weights, biases, name=name)
-            return fc
+            output = op(feed_in, weights, biases, name=name)
+            logging.debug("name={},inp'shape={},output'shape={}".format(name,inp.get_shape(),output.get_shape()))
+            return output
 
 
     """
@@ -313,16 +319,17 @@ class ONet(Network):
 def create_mtcnn(sess, model_path):
     if not model_path:
         model_path,_ = os.path.split(os.path.realpath(__file__))
-
+    logging.debug("begin pnet.......................")
     with tf.variable_scope('pnet'):
         data = tf.placeholder(tf.float32, (None,None,None,3), 'input')
         pnet = PNet({'data':data})
         pnet.load(os.path.join(model_path, 'det1.npy'), sess)
+    logging.debug("begin rnet.......................")
     with tf.variable_scope('rnet'):
         data = tf.placeholder(tf.float32, (None,24,24,3), 'input')
         rnet = RNet({'data':data})
         rnet.load(os.path.join(model_path, 'det2.npy'), sess)
-
+    logging.debug("begin onet.......................")
     with tf.variable_scope('onet'):
         data = tf.placeholder(tf.float32, (None,48,48,3), 'input')
         onet = ONet({'data':data})
@@ -351,34 +358,40 @@ def create_mtcnn(sess, model_path):
 
 
 
-def myprelu(inp, name=None):
+def tvuprelu(inp, name=None):
     with tf.variable_scope(name):
         i = int(inp.get_shape()[-1])
         alpha = tf.get_variable('alpha', (i,), trainable=True)
         output = tf.nn.relu(inp) + tf.multiply(alpha, -tf.nn.relu(-inp))
-    return output
-def mysoftmax(target, axis, name=None):
+        logging.debug("name={},inp'shape={},output'shape={}".format(name,inp.get_shape(),output.get_shape()))
+        return output
+def tvusoftmax(target, axis, name=None):
     max_axis = tf.reduce_max(target, axis, keepdims=True)
     target_exp = tf.exp(target-max_axis)
     normalize = tf.reduce_sum(target_exp, axis, keepdims=True)
     softmax = tf.div(target_exp, normalize, name)
     return softmax
 
-def myconv(inp,k_h,k_w,c_o,s_h,s_w,name,relu=False,padding='SAME',biased=True,trainable=True):
+def tvuconv(inp,k_h,k_w,c_o,s_h,s_w,name,relu=False,padding='SAME',biased=True,trainable=True):
     c_i = int(inp.get_shape()[-1])
-    with tf.variable_scope(name) as scope:
+    with tf.variable_scope(name):
         kernel = tf.get_variable("weights", [k_h, k_w, c_i, c_o], trainable=trainable)
         output = tf.nn.conv2d(inp, kernel, [1, s_h, s_w, 1], padding=padding)
         if biased:
             biases = tf.get_variable('biases', [c_o], trainable=trainable)
             output = tf.nn.bias_add(output, biases)
         if relu:
-            output = tf.nn.relu(output, name=scope.name)
+            output = tf.nn.relu(output, name="relu")
+        logging.debug("name={},inp'shape={},output'shape={}".format(name,inp.get_shape(),output.get_shape()))    
         return output
-
-def myfc(inp, num_out, name, relu=True):
+def tvumaxpool(inp, ksize, strides, name, padding='SAME'):
+    output = tf.nn.max_pool(inp,ksize=ksize,strides=strides,padding=padding,name=name)
+    logging.debug("name={},inp'shape={},output'shape={}".format(name,inp.get_shape(),output.get_shape()))
+    return output
+def tvufc(inp, num_out, name, relu=True):
     with tf.variable_scope(name):
         input_shape = inp.get_shape()
+        logging.debug("fc shape={}".format(input_shape))
         if input_shape.ndims == 4:
             # The input is spatial. Vectorize it first.
             dim = 1
@@ -390,70 +403,100 @@ def myfc(inp, num_out, name, relu=True):
         weights = tf.get_variable("weights", [dim, num_out])
         biases = tf.get_variable("biases", [num_out])
         op = tf.nn.relu_layer if relu else tf.nn.xw_plus_b
-        fc = op(feed_in, weights, biases, name=name)
-        return fc
+        output = op(feed_in, weights, biases, name=name)
+        logging.debug("name={},inp'shape={},output'shape={}".format(name,inp.get_shape(),output.get_shape()))
+        return output
+
+def tvuload(data_path, session,variable_scope,ignore_missing=False):
+    data_dict = np.load(data_path, encoding='latin1',allow_pickle=True).item() #pylint: disable=no-member
+    with tf.variable_scope(variable_scope,reuse=True):
+        for op_name in data_dict:
+            logging.debug("op_name={}".format(op_name))
+            with tf.variable_scope(op_name, reuse=True):
+                for param_name, data in iteritems(data_dict[op_name]):
+                    try:
+                        var = tf.get_variable(param_name)
+                        session.run(var.assign(data))
+                    except ValueError:
+                        if not ignore_missing:
+                            raise
 
 
-
-
-def create_myself_mtcnn(sess,model_path):
+def create_tvu_mtcnn(sess,model_path):
     if not model_path:
         model_path,_ = os.path.split(os.path.realpath(__file__))
     pnet ={}  
     rnet= {}
-    onet ={}  
+    onet ={} 
+    logging.debug("begin pnet.......................") 
     with tf.variable_scope('pnet'):
         pnet["data"] = tf.placeholder(tf.float32, (None,None,None,3), 'input')
-        pnet["conv1"] =myconv(pnet["data"],3,3,10,1,1,name="conv1",padding="VALID")
-        pnet["prelu1"] =myprelu(pnet["conv1"], name="PReLU1")
-        pnet["pool1"] =tf.nn.max_pool(pnet["prelu1"],ksize=[1, 2, 2, 1],strides=[1, 2, 2, 1],padding="SAME",name="pool1")
-        pnet["conv2"] = myconv(pnet["pool1"],3,3,16,1,1,name="conv2",padding="VALID")
-        pnet["prelu2"] = myprelu(pnet["conv2"],name="PReLU2")
-        pnet["conv3"] = myconv(pnet["prelu2"],3,3,32,1,1,name="conv3",padding="VALID")
-        pnet["prelu3"] = myprelu(pnet["conv3"],name="PReLU3")
-        pnet["conv4_1"] = myconv(pnet["prelu3"],1,1,2,1,1,name="conv4-1")
-        pnet["cpmv4_2"] = myconv(pnet["prelu3"],1,1,4,1,1,name="conv4-2")
-        pnet["prob1"] = mysoftmax(pnet["conv4_1"],3,"prob1")
+        pnet["conv1"] =tvuconv(pnet["data"],3,3,10,1,1,name="conv1",padding="VALID")
+        pnet["prelu1"] =tvuprelu(pnet["conv1"], name="PReLU1")
+        # pnet["pool1"] =tf.nn.max_pool(pnet["prelu1"],ksize=[1, 2, 2, 1],strides=[1, 2, 2, 1],padding="SAME",name="pool1")
+        pnet["pool1"] =tvumaxpool(pnet["prelu1"],ksize=[1, 2, 2, 1],strides=[1, 2, 2, 1],padding="SAME",name="pool1")
+        pnet["conv2"] = tvuconv(pnet["pool1"],3,3,16,1,1,name="conv2",padding="VALID")
+        pnet["prelu2"] = tvuprelu(pnet["conv2"],name="PReLU2")
+        pnet["conv3"] = tvuconv(pnet["prelu2"],3,3,32,1,1,name="conv3",padding="VALID")
+        pnet["prelu3"] = tvuprelu(pnet["conv3"],name="PReLU3")
+        pnet["conv4_1"] = tvuconv(pnet["prelu3"],1,1,2,1,1,name="conv4-1")
+        pnet["conv4-2"] = tvuconv(pnet["prelu3"],1,1,4,1,1,name="conv4-2")
+        pnet["prob1"] = tvusoftmax(pnet["conv4_1"],3,"prob1")
+    logging.debug("begin rnet.......................")
     with tf.variable_scope('rnet'):
         rnet["data"]  = tf.placeholder(tf.float32, (None,24,24,3), 'input')
-        rnet["conv1"] = myconv(rnet["data"],3,3,28,1,1,name="conv1",padding="VALID")
-        rnet["prelu1"] = myprelu(rnet["conv1"],name="prelu1")
-        rnet["pool1"] = tf.nn.max_pool(pnet["prelu1"],ksize=[1, 3, 3, 1],strides=[1, 2, 2, 1],padding="SAME",name="pool1")
-        rnet["conv2"] = myconv(rnet["pool1"],3,3,48,1,1,padding="VALID",name="conv2")
-        rnet["prelu2"] = myprelu(rnet["conv2"],name="prelu2")
-        rnet["pool2"]=tf.nn.max_pool(rnet["prelu2"],ksize=[1, 3, 3, 1],strides=[1, 2, 2, 1],padding="VALID",name="pool2")
-        rnet["conv3"] = myconv(rnet["pool2"],2,2,64,1,1,padding="VALID",name="conv3")
-        rnet["prelu3"] = myprelu(rnet["conv3"],name="prelu3")
-        rnet["conv4"] = myfc(rnet["prelu3"],128,relu=False,name="conv4")#it is full connection,use the name conv4,because the npy file use that
-        rnet["prelu4"] = myprelu(rnet["conv4"],name="prelu4")
-        rnet["conv5-1"] = myfc(rnet["prelu4"],2,relu=False,name="conv5-1")
-        rnet["prob1"] = mysoftmax(rnet["conv5-1"],1,name="prob1")
-        rnet["conv5-2"] =myfc(rnet["prelu4"],4,relu=False,name="conv5-2")
+        rnet["conv1"] = tvuconv(rnet["data"],3,3,28,1,1,name="conv1",padding="VALID")
+        rnet["prelu1"] = tvuprelu(rnet["conv1"],name="prelu1")
+        # rnet["pool1"] = tf.nn.max_pool(rnet["prelu1"],ksize=[1, 3, 3, 1],strides=[1, 2, 2, 1],padding="SAME",name="pool1")
+        rnet["pool1"] = tvumaxpool(rnet["prelu1"],ksize=[1, 3, 3, 1],strides=[1, 2, 2, 1],padding="SAME",name="pool1")
+        rnet["conv2"] = tvuconv(rnet["pool1"],3,3,48,1,1,padding="VALID",name="conv2")
+        rnet["prelu2"] = tvuprelu(rnet["conv2"],name="prelu2")
+        # rnet["pool2"]=tf.nn.max_pool(rnet["prelu2"],ksize=[1, 3, 3, 1],strides=[1, 2, 2, 1],padding="VALID",name="pool2")
+        rnet["pool2"]=tvumaxpool(rnet["prelu2"],ksize=[1, 3, 3, 1],strides=[1, 2, 2, 1],padding="VALID",name="pool2")
+        rnet["conv3"] = tvuconv(rnet["pool2"],2,2,64,1,1,padding="VALID",name="conv3")
+        rnet["prelu3"] = tvuprelu(rnet["conv3"],name="prelu3")
+        rnet["conv4"] = tvufc(rnet["prelu3"],128,relu=False,name="conv4")#it is full connection,use the name conv4,because the npy file use that
+        rnet["prelu4"] = tvuprelu(rnet["conv4"],name="prelu4")
+        rnet["conv5-1"] = tvufc(rnet["prelu4"],2,relu=False,name="conv5-1")
+        rnet["prob1"] = tvusoftmax(rnet["conv5-1"],1,name="prob1")
+        rnet["conv5-2"] =tvufc(rnet["prelu4"],4,relu=False,name="conv5-2")
     
- 
+    logging.debug("begin onet.......................")
     with tf.variable_scope('onet'):
         onet["data"]  = tf.placeholder(tf.float32, (None,48,48,3), 'input')
-        onet["conv1"] = myconv(onet["data"],3,3,32,1,1,name="conv1",padding="VALID")
-        onet["prelu1"] = myprelu(onet["conv1"],name="prelu1")
-        onet["pool1"] = tf.nn.max_pool(onet["prelu1"],ksize=[1, 3, 3, 1],strides=[1, 2, 2, 1],padding="SAME",name="pool1")
-        onet["conv2"] = myconv(onet["pool1"],3,3,64,1,1,padding="VALID",name="conv2")
-        onet["prelu2"] = myprelu(onet["conv2"],name="prelu2")
-        onet["pool2"]=tf.nn.max_pool(onet["prelu2"],ksize=[1, 3, 3, 1],strides=[1, 2, 2, 1],padding="VALID",name="pool2")
-        onet["conv3"] = myconv(onet["pool2"],3,3,64,1,1,padding="VALID",name="conv3")
-        onet["prelu3"] = myprelu(onet["conv3"],name="prelu3")
-        onet["pool3"] = tf.nn.max_pool(onet["prelu1"],ksize=[1, 2, 2, 1],strides=[1, 2, 2, 1],padding="SAME",name="pool3")
-        onet["conv4"] = myconv(onet["pool3"],2,2,128,1,1,padding="VALID",name="conv4")
-        onet["prelu4"] = myprelu(onet["conv4"],name="prelu4")
-        onet["conv5"] = myfc(onet["prelu4"],256,relu=False,name="conv5")
-        onet["prelu5"] = myprelu(onet["conv5"],name="prelu5")
-        onet["conv6-1"] = myfc(onet["prelu5"],2,relu=False,name="conv6-1")
-        onet["prob1"] = mysoftmax(onet["conv6-1"],1,name="prob1")
-        onet["conv6-2"] = myfc(onet["prelu5"],4,relu=False,name="conv6-2")
-        onet["conv6-3"] = myfc(onet["prelu5"],10,relu=False,name="conv6-3")
-
+        onet["conv1"] = tvuconv(onet["data"],3,3,32,1,1,name="conv1",padding="VALID")
+        onet["prelu1"] = tvuprelu(onet["conv1"],name="prelu1")
+        # onet["pool1"] = tf.nn.max_pool(onet["prelu1"],ksize=[1, 3, 3, 1],strides=[1, 2, 2, 1],padding="SAME",name="pool1")
+        onet["pool1"] = tvumaxpool(onet["prelu1"],ksize=[1, 3, 3, 1],strides=[1, 2, 2, 1],padding="SAME",name="pool1")
+        onet["conv2"] = tvuconv(onet["pool1"],3,3,64,1,1,padding="VALID",name="conv2")
+        onet["prelu2"] = tvuprelu(onet["conv2"],name="prelu2")
+        # onet["pool2"]=tf.nn.max_pool(onet["prelu2"],ksize=[1, 3, 3, 1],strides=[1, 2, 2, 1],padding="VALID",name="pool2")
+        onet["pool2"]=tvumaxpool(onet["prelu2"],ksize=[1, 3, 3, 1],strides=[1, 2, 2, 1],padding="VALID",name="pool2")
+        onet["conv3"] = tvuconv(onet["pool2"],3,3,64,1,1,padding="VALID",name="conv3")
+        onet["prelu3"] = tvuprelu(onet["conv3"],name="prelu3")
+        # onet["pool3"] = tf.nn.max_pool(onet["prelu1"],ksize=[1, 2, 2, 1],strides=[1, 2, 2, 1],padding="SAME",name="pool3")
+        onet["pool3"] = tvumaxpool(onet["prelu3"],ksize=[1, 2, 2, 1],strides=[1, 2, 2, 1],padding="SAME",name="pool3")
+        onet["conv4"] = tvuconv(onet["pool3"],2,2,128,1,1,padding="VALID",name="conv4")
+        onet["prelu4"] = tvuprelu(onet["conv4"],name="prelu4")
+        onet["conv5"] = tvufc(onet["prelu4"],256,relu=False,name="conv5")
+        onet["prelu5"] = tvuprelu(onet["conv5"],name="prelu5")
+        onet["conv6-1"] = tvufc(onet["prelu5"],2,relu=False,name="conv6-1")
+        onet["prob1"] = tvusoftmax(onet["conv6-1"],1,name="prob1")
+        onet["conv6-2"] = tvufc(onet["prelu5"],4,relu=False,name="conv6-2")
+        onet["conv6-3"] = tvufc(onet["prelu5"],10,relu=False,name="conv6-3")
     writer = tf.summary.FileWriter("logs/", sess.graph)
+    tvuload(os.path.join(model_path, 'det1.npy'), sess,"pnet")
+    tvuload(os.path.join(model_path, 'det2.npy'), sess,"rnet")
+    tvuload(os.path.join(model_path, 'det3.npy'), sess,"onet")
+    # pnet_fun = lambda img : sess.run(('pnet/conv4-2/BiasAdd:0', 'pnet/prob1:0'), feed_dict={'pnet/input:0':img})
+    # rnet_fun = lambda img : sess.run(('rnet/conv5-2/conv5-2:0', 'rnet/prob1:0'), feed_dict={'rnet/input:0':img})
+    # onet_fun = lambda img : sess.run(('onet/conv6-2/conv6-2:0', 'onet/conv6-3/conv6-3:0', 'onet/prob1:0'), feed_dict={'onet/input:0':img})
 
-    return None,None,None
+    pnet_fun = lambda img : sess.run((pnet["conv4-2"], pnet["prob1"]), feed_dict={'pnet/input:0':img})
+    rnet_fun = lambda img : sess.run((rnet["conv5-2"], rnet["prob1"]), feed_dict={'rnet/input:0':img})
+    onet_fun = lambda img : sess.run((onet["conv6-2"], onet["conv6-3"], onet["prob1"]), feed_dict={'onet/input:0':img})
+    return pnet_fun, rnet_fun, onet_fun
+    # return None,None,None
 
 
 

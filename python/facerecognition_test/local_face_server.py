@@ -311,14 +311,13 @@ def  biastest():
 
 def test():
     detect = detectface()
-    return
     while True:
         bTime = time.time()
         logging.debug("tensorflow begin")
         ret = detect.defect_path("pic/timg.jpg")
         eTime = time.time()
         logging.debug("tensorflow end,costTime={}".format(eTime-bTime))
-        logging.debug("ret={}".format(ret))
+        logging.debug("len(ret)={},ret={}".format(len(ret),ret))
     
 def test_remoteserver():
     logging.info("enter")
