@@ -59,7 +59,7 @@ def eval_with_noise(env, net, noise):
     old_params = net.state_dict() # save the parameters
     for p, p_n in zip(net.parameters(), noise):
         p.data += NOISE_STD * p_n
-    r, s = evaluate(env, net)# the core of ES, F=F(parameter +noise)
+    r, s = evaluate(env, net)# the core of ES, fitness=F(parameter +noise)
     net.load_state_dict(old_params)#reload the old parameter.
     return r, s
 
@@ -78,11 +78,11 @@ def train_step(net, batch_noise, batch_reward, writer, step_idx):
             weighted_noise = [reward * p_n for p_n in noise]
         else:
             for w_n, p_n in zip(weighted_noise, noise):
-                w_n += reward * p_n
+                w_n += reward * p_n #weighted_noise is based on old weighted_noise. There are some differece in book.
     m_updates = []
     for p, p_update in zip(net.parameters(), weighted_noise):
-        update = p_update / (len(batch_reward) * NOISE_STD)
-        p.data += LEARNING_RATE * update
+        update = p_update / (len(batch_reward) * NOISE_STD)#every parameter have it's own weighted_noise.
+        p.data += LEARNING_RATE * update # maybe ,updating weight parameter directly,no use gradient,so no need to use step().
         m_updates.append(torch.norm(update))
     writer.add_scalar("update_l2", np.mean(m_updates), step_idx)
 

@@ -60,7 +60,7 @@ import gc
 # import string
 import psutil
 
-from mtcnnpytorch.src.detector import detect_faces,pytorchDetect
+# from mtcnnpytorch.src.detector import detect_faces,pytorchDetect
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 

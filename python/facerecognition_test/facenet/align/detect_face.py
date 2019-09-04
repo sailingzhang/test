@@ -28,7 +28,7 @@ from __future__ import division
 from __future__ import print_function
 from six import string_types, iteritems
 
-from memory_profiler import profile
+# from memory_profiler import profile
 import numpy as np
 import tensorflow as tf
 #from math import floor

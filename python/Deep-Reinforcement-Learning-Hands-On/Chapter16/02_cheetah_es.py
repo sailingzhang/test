@@ -116,7 +116,7 @@ def train_step(optimizer, net, batch_noise, batch_reward, writer, step_idx, nois
     optimizer.zero_grad()
     for p, p_update in zip(net.parameters(), weighted_noise):
         update = p_update / (len(batch_reward) * noise_std)
-        p.grad = -update
+        p.grad = -update#May be,because fo using gradient,so must use step()
         m_updates.append(torch.norm(update))
     writer.add_scalar("update_l2", np.mean(m_updates), step_idx)
     optimizer.step() #why to update gradient.
