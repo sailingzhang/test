@@ -109,7 +109,7 @@ if __name__ == "__main__":
                     r = net.decode_teacher(enc_item, out_seq)
                     bleu_sum += model.seq_bleu(r, ref_indices)
                 else:
-                    r, seq = net.decode_chain_argmax(enc_item, out_seq.data[0:1],
+                    r, seq = net.decode_chain_argmax(enc_item, out_seq.data[0:1], #out_seq.data[0:1]  should "BEGIN" encode seq.
                                                      len(ref_indices))
                     bleu_sum += utils.calc_bleu(seq, ref_indices)
                 net_results.append(r)
