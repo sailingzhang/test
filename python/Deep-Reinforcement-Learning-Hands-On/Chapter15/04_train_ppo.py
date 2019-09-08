@@ -178,7 +178,7 @@ if __name__ == "__main__":
                     opt_act.zero_grad()
                     mu_v = net_act(states_v)
                     logprob_pi_v = calc_logprob(mu_v, net_act.logstd, actions_v)
-                    ratio_v = torch.exp(logprob_pi_v - batch_old_logprob_v)
+                    ratio_v = torch.exp(logprob_pi_v - batch_old_logprob_v) #(1)why use exp,may be there is log probablity,use exp to revert it 
                     surr_obj_v = batch_adv_v * ratio_v
                     clipped_surr_v = batch_adv_v * torch.clamp(ratio_v, 1.0 - PPO_EPS, 1.0 + PPO_EPS)
                     loss_policy_v = -torch.min(surr_obj_v, clipped_surr_v).mean()

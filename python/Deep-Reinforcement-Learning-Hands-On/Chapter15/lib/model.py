@@ -51,6 +51,6 @@ class AgentA2C(ptan.agent.BaseAgent):
         mu_v = self.net(states_v)
         mu = mu_v.data.cpu().numpy()
         logstd = self.net.logstd.data.cpu().numpy()
-        actions = mu + np.exp(logstd) * np.random.normal(size=logstd.shape)
+        actions = mu + np.exp(logstd) * np.random.normal(size=logstd.shape)# in according to the variance which was learned ,add noise to action
         actions = np.clip(actions, -1, 1)
         return actions, agent_states
