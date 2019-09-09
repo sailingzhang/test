@@ -78,7 +78,7 @@ def calc_adv_ref(trajectory, net_crt, states_v, device="cpu"):
             delta = exp.reward + GAMMA * next_val - val
             last_gae = delta + GAMMA * GAE_LAMBDA * last_gae
         result_adv.append(last_gae)
-        result_ref.append(last_gae + val)
+        result_ref.append(last_gae + val) #just like before,A=r+γV(s')-V(s)
 
     adv_v = torch.FloatTensor(list(reversed(result_adv))).to(device)
     ref_v = torch.FloatTensor(list(reversed(result_ref))).to(device)
