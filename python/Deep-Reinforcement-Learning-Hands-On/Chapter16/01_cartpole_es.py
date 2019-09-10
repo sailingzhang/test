@@ -66,7 +66,7 @@ def eval_with_noise(env, net, noise):
 
 def train_step(net, batch_noise, batch_reward, writer, step_idx):
     # pay attention to batch_noise,bath_reward, you could take train_step as an interface to update parameters,which batch_noise and batch _reward are the arguments
-    weighted_noise = None
+    weighted_noise = None 
     norm_reward = np.array(batch_reward)
     norm_reward -= np.mean(norm_reward)
     s = np.std(norm_reward)
@@ -80,7 +80,7 @@ def train_step(net, batch_noise, batch_reward, writer, step_idx):
             for w_n, p_n in zip(weighted_noise, noise):
                 w_n += reward * p_n #weighted_noise is based on old weighted_noise. the w_n is numpy reference.
     m_updates = []
-    for p, p_update in zip(net.parameters(), weighted_noise):#the weighted_noise is fixed
+    for p, p_update in zip(net.parameters(), weighted_noise):#finally,the weighted_noise is the total of F(i)*noise(i).
         update = p_update / (len(batch_reward) * NOISE_STD)#every parameter have it's own weighted_noise.
         p.data += LEARNING_RATE * update # maybe ,updating weight parameter directly,no use gradient,so no need to use step().
         m_updates.append(torch.norm(update))
