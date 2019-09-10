@@ -78,9 +78,9 @@ def train_step(net, batch_noise, batch_reward, writer, step_idx):
             weighted_noise = [reward * p_n for p_n in noise]
         else:
             for w_n, p_n in zip(weighted_noise, noise):
-                w_n += reward * p_n #weighted_noise is based on old weighted_noise. There are some differece in book.
+                w_n += reward * p_n #weighted_noise is based on old weighted_noise. the w_n is numpy reference.
     m_updates = []
-    for p, p_update in zip(net.parameters(), weighted_noise):
+    for p, p_update in zip(net.parameters(), weighted_noise):#the weighted_noise is fixed
         update = p_update / (len(batch_reward) * NOISE_STD)#every parameter have it's own weighted_noise.
         p.data += LEARNING_RATE * update # maybe ,updating weight parameter directly,no use gradient,so no need to use step().
         m_updates.append(torch.norm(update))
