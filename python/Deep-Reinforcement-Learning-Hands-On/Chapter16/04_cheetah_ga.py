@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 import sys
+sys.path.append("../../")
+sys.path.append("../../ptan-master")
+import logging as log
+from log_init import log_init
+
+
 import gym
 import roboschool
 import collections
@@ -63,7 +69,7 @@ def mutate_net(net, seed, copy_net=True):
     return new_net
 
 
-def build_net(env, seeds):
+def build_net(env, seeds):#seeds may be tuple
     torch.manual_seed(seeds[0])
     net = Net(env.observation_space.shape[0], env.action_space.shape[0])
     for seed in seeds[1:]:
@@ -79,19 +85,19 @@ def worker_func(input_queue, output_queue):
     cache = {}
 
     while True:
-        parents = input_queue.get()#parents=[(),(),()]
+        parents = input_queue.get()#parents=[(seed,seed,seed)]
         if parents is None:
             break
         new_cache = {}
         for net_seeds in parents:
             if len(net_seeds) > 1:
-                net = cache.get(net_seeds[:-1])
+                net = cache.get(net_seeds[:-1])#[:-1] is old net parameters noise seed.
                 if net is not None:
                     net = mutate_net(net, net_seeds[-1])
                 else:
                     net = build_net(env, net_seeds)
             else:
-                net = build_net(env, net_seeds)
+                net = build_net(env, net_seeds)#the list of seed represent the change process of parameters.
             new_cache[net_seeds] = net#net_seeds is tuple
             reward, steps = evaluate(env, net)
             output_queue.put(OutputItem(seeds=net_seeds, reward=reward, steps=steps))
@@ -99,6 +105,7 @@ def worker_func(input_queue, output_queue):
 
 
 if __name__ == "__main__":
+    log_init("../../04_cheetah_ga.log")
     mp.set_start_method('spawn')
     writer = SummaryWriter(comment="-cheetah-ga")
 
@@ -146,7 +153,7 @@ if __name__ == "__main__":
             for _ in range(SEEDS_PER_WORKER):
                 parent = np.random.randint(PARENTS_COUNT)#select the elites
                 next_seed = np.random.randint(MAX_SEED)
-                seeds.append(tuple(list(population[parent][0]) + [next_seed]))
+                seeds.append(tuple(list(population[parent][0]) + [next_seed]))#   ([]) represent the parameters.
             worker_queue.put(seeds)
         gen_idx += 1
 
