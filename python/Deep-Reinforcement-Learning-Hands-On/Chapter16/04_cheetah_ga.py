@@ -79,7 +79,7 @@ def worker_func(input_queue, output_queue):
     cache = {}
 
     while True:
-        parents = input_queue.get()
+        parents = input_queue.get()#parents=[(),(),()]
         if parents is None:
             break
         new_cache = {}
@@ -92,7 +92,7 @@ def worker_func(input_queue, output_queue):
                     net = build_net(env, net_seeds)
             else:
                 net = build_net(env, net_seeds)
-            new_cache[net_seeds] = net
+            new_cache[net_seeds] = net#net_seeds is tuple
             reward, steps = evaluate(env, net)
             output_queue.put(OutputItem(seeds=net_seeds, reward=reward, steps=steps))
         cache = new_cache
@@ -144,7 +144,7 @@ if __name__ == "__main__":
         for worker_queue in input_queues:
             seeds = []
             for _ in range(SEEDS_PER_WORKER):
-                parent = np.random.randint(PARENTS_COUNT)
+                parent = np.random.randint(PARENTS_COUNT)#select the elites
                 next_seed = np.random.randint(MAX_SEED)
                 seeds.append(tuple(list(population[parent][0]) + [next_seed]))
             worker_queue.put(seeds)

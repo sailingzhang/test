@@ -71,6 +71,8 @@ if __name__ == "__main__":
 
         writer.add_scalar("reward_mean", reward_mean, gen_idx)
         writer.add_scalar("reward_std", reward_std, gen_idx)
+
+        
         writer.add_scalar("reward_max", reward_max, gen_idx)
         print("%d: reward_mean=%.2f, reward_max=%.2f, reward_std=%.2f" % (
             gen_idx, reward_mean, reward_max, reward_std))
@@ -86,7 +88,9 @@ if __name__ == "__main__":
             parent = prev_population[parent_idx][0]
             net = mutate_parent(parent)
             fitness = evaluate(env, net)
-            population.append((net, fitness))
+            populati
+            
+            on.append((net, fitness))
         gen_idx += 1
 
     pass
