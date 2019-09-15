@@ -77,7 +77,7 @@ class ExperienceSource:
         以上代码是填充每个环境的初始状态。states,agent_states,cur_rewards的长度至此已经固定了。
         """
 
-        iter_idx = 0#这是一个无尽的迭代器，一个iter_idx代表一个环境。
+        iter_idx = 0#这是一个无尽的迭代器，the yield object should be no relation each other.
         while True:
             logging.debug("len(states)={},len(histories)={}".format(len(states),len(histories)))
             actions = [None] * len(states)#action的长度固定了

@@ -52,7 +52,8 @@ class MaxAndSkipEnv(gym.Wrapper):
             if done:
                 break
         max_frame = np.max(np.stack(self._obs_buffer), axis=0)
-        logging.debug("obs'shape={}".format(obs.shape))
+        logging.debug("obs'shape={},max_frame.shape={}".format(obs.shape,max_frame.shape))
+        #  DEBUG obs'shape=(210, 160, 3),max_frame.shape=(210, 160, 3)
         return max_frame, total_reward, done, info
 
     def reset(self):
@@ -118,18 +119,20 @@ class BufferWrapper(gym.ObservationWrapper):
         old_space = env.observation_space
         logging.debug("origin low'shape={}".format(old_space.low.shape))
         self.observation_space = gym.spaces.Box(old_space.low.repeat(n_steps, axis=0),
-                                                old_space.high.repeat(n_steps, axis=0), dtype=dtype)
+                                                old_space.high.repeat(n_steps, axis=0), dtype=dtype)#n_steps is buffter size
 
     def reset(self):
         logging.debug("reset_BufferWrapper")
         logging.debug("type(low)={},low'shape={},low={}".format(type(self.observation_space.low),self.observation_space.low.shape,self.observation_space.low))
+        # DEBUG type(low)=<class 'numpy.ndarray'>,low'shape=(4, 84, 84),low=[[[0. 0. 0. ... 0. 0. 0.]
         self.buffer = np.zeros_like(self.observation_space.low, dtype=self.dtype)
         return self.observation(self.env.reset())
 
     def observation(self, observation):
-        logging.debug("observation_BufferWrapper,obs'shape={}".format(observation.shape))
         self.buffer[:-1] = self.buffer[1:]
         self.buffer[-1] = observation
+        logging.debug("observation_BufferWrapper,obs'shape={},self.buffer.size={}".format(observation.shape,self.buffer.shape))
+        # DEBUG observation_BufferWrapper,obs'shape=(1, 84, 84),self.buffer.size=(4, 84, 84)
         return self.buffer
 
 
