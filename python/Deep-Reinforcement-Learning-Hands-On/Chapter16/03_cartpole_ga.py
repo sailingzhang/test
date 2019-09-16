@@ -88,9 +88,7 @@ if __name__ == "__main__":
             parent = prev_population[parent_idx][0]
             net = mutate_parent(parent)
             fitness = evaluate(env, net)
-            populati
-            
-            on.append((net, fitness))
+            population.append((net, fitness))
         gen_idx += 1
 
     pass
