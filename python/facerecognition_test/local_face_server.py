@@ -318,6 +318,7 @@ def test():
         eTime = time.time()
         logging.debug("tensorflow end,costTime={}".format(eTime-bTime))
         logging.debug("len(ret)={},ret={}".format(len(ret),ret))
+        return
     
 def test_remoteserver():
     logging.info("enter")
