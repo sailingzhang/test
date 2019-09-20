@@ -5,10 +5,13 @@ import gym
 import random
 import torch
 import torch.nn as nn
+import copy
 from data import mnist_data
 import numpy as np
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import StandardScaler
+from tensorboardX import SummaryWriter
+import pickle
 
 
 
@@ -66,8 +69,11 @@ class MyModule(nn.Module):
             logging.debug("loss={}".format(loss))
             # for param in self.parameters():
             #     logging.debug("after param={}".format(param))
-    
-class MyGenModule(nn.Module):
+
+
+saveParameter = "mnist_gen.data"
+saveStad ="mnist_std.data"
+class MyGen_net(nn.Module):
     def __init__(self,num_inputs,num_classes,droup_prob = 0.3):
         super().__init__()
         # self.criterion = torch.nn.MSELoss(reduction='sum')
@@ -82,6 +88,18 @@ class MyGenModule(nn.Module):
             # nn.ReLU(),
             # nn.Softmax(dim=1)
         )
+    def load(self,stdfile=None,parameterfile=None):
+        if stdfile is not None:
+            self.standardScaler_fit = pickle.load(stdfile)
+        if parameterfile is not None:
+            self.load_state_dict(torch.load(parameterfile))
+    def save(self,stdfile,parameterfile):
+        torch.save(self.state_dict(),parameterfile)
+        with open(stdfile, 'wb') as f:
+            pickle.dump(self.standardScaler_fit,f)
+
+    def set_standardScaler_fit(self,standardScaler_fit):
+        self.standardScaler_fit = standardScaler_fit
     def predict(self, X):
         X_scaled = self.standardScaler_fit.transform(X)
         X_tensor = torch.FloatTensor(X_scaled)
@@ -93,36 +111,78 @@ class MyGenModule(nn.Module):
         return y_pred
     def evaluate(self,X,y):
         y_pred =self.predict(X)
-        logging.debug("evluate={}".format(accuracy_score(y,y_pred)))
+        score = accuracy_score(y,y_pred)
+        # logging.debug("evluate={}".format(score))
+        return score
+
+
+   
+
+class trainClassifyGenNet():
+    def __init__(self,net,populationNum,parentsNum,noiseStd):
+        self.net = net
+        self.nets =[]
+        self.populationNum = populationNum
+        self.parentsNum = parentsNum
+        self.noiseStd = noiseStd
+        for _ in range(self.populationNum):
+            self.nets.append(copy.deepcopy(net))
+
+    def mutate_parent(self,net):
+        new_net = copy.deepcopy(net)
+        for p in new_net.parameters():
+            noise_t = torch.tensor(np.random.normal(size=p.data.size()).astype(np.float32))
+            p.data += self.noiseStd * noise_t
+        return new_net
 
     def fit(self,X,y):
-        logging.debug("X'shape={},y'shape={}".format(X.shape,y.shape))
+        writer = SummaryWriter(comment="-classify-gen")
         self.standardScaler_fit = StandardScaler().fit(X)
-        X_scaled = self.standardScaler_fit.transform(X)
-        self.optimizer = torch.optim.SGD(self.parameters(), lr=0.05, momentum=0.9)
-        # self.optimizer =torch.optim.Adam(params=self.parameters(), lr=0.05)
-        for param in self.parameters():
-            logging.debug("befor param={}".format(param))
-        for i in range(200):
-            logging.debug("i={}".format(i))
-            rand_index = np.random.permutation(len(X_scaled))
-            X_bachs = np.array_split(X_scaled[rand_index],10)
-            y_bachs = np.array_split(y[rand_index],10)
-            for xbach,ybach in  zip(X_bachs,y_bachs):
-                X_tensor = torch.FloatTensor(xbach)
-                y_tensor = torch.LongTensor(ybach)
-                # logging.debug("type(X_tensor)={},type(y_tensor)={}".format(X_tensor,y_tensor))
-                logists = self.pipe(X_tensor)
-                # logging.debug("logists={}".format(logists))
-                self.optimizer.zero_grad()
-                loss = self.criterion(logists,y_tensor)
-                # logging.debug("loss={}".format(loss))
-                loss.backward()
-                self.optimizer.step()
-            logging.debug("logists'size={},y_tensor'size={}".format(logists.size(),y_tensor.size()))
-            logging.debug("loss={}".format(loss))
-            # for param in self.parameters():
-            #     logging.debug("after param={}".format(param))    
+        for _,val in enumerate(self.nets):
+            val.set_standardScaler_fit(self.standardScaler_fit)
+        population = [ (net, net.evaluate(X,y)) for net in self.nets]
+        # X_scaled = self.standardScaler_fit.transform(X)
+
+        cur_max_rewards=0
+        gen_idx =0
+        while True:
+            population.sort(key=lambda p: p[1], reverse=True)
+
+            rewards = [p[1] for p in population[:self.parentsNum]]
+            reward_mean = np.mean(rewards)
+            reward_max = np.max(rewards)
+            reward_std = np.std(rewards)
+            writer.add_scalar("reward_mean", reward_mean, gen_idx)
+            writer.add_scalar("reward_std", reward_std, gen_idx)
+            writer.add_scalar("reward_max", reward_max, gen_idx)
+            logging.debug("gen_idx={},reward_mean={},reward_std={},reward_max={}".format(gen_idx,reward_mean,reward_std,reward_max))
+            if reward_max > cur_max_rewards:
+                torch.save(population[0][0].state_dict(),saveParameter)
+                with open(saveStad, 'wb') as f:
+                    pickle.dump(self.standardScaler_fit,f)
+                logging.debug("save reward_max={},state_dict.keys()={}".format(reward_max,population[0][0].state_dict().keys()))
+
+
+            prev_population = population
+            population = [population[0]]
+            for _ in range(self.populationNum-1):
+                parent_idx = np.random.randint(0, self.parentsNum)
+                parent = prev_population[parent_idx][0]
+                net = self.mutate_parent(parent)
+                fitness = net.evaluate(X,y)
+                population.append((net, fitness))
+            gen_idx += 1            
+
+
+
+def classifyGenTest():
+    NOISE_STD = 0.01
+    POPULATION_SIZE = 50
+    PARENTS_COUNT = 10
+    mindata = mnist_data()
+    net = MyGen_net(num_inputs=28*28,num_classes=10)
+    trainInstance = trainClassifyGenNet(net,POPULATION_SIZE,PARENTS_COUNT,NOISE_STD)
+    trainInstance.fit(mindata.X_train,mindata.y_train)
 
 def mymoduleTest():
     mindata = mnist_data()
@@ -176,5 +236,6 @@ def lstmTest():
 
 if __name__ == '__main__':
     log_init("pytorch.log")
-    mymoduleTest()
+    classifyGenTest()
+    # mymoduleTest()
     # lstmTest()
