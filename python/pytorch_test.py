@@ -88,12 +88,13 @@ class MyGen_net(nn.Module):
             # nn.ReLU(),
             # nn.Softmax(dim=1)
         )
-    def load(self,stdfile=None,parameterfile=None):
+    def load(self,parameterfile=None,stdfile=None):
         if stdfile is not None:
-            self.standardScaler_fit = pickle.load(stdfile)
+            with open(stdfile,"rb+") as f:
+                self.standardScaler_fit = pickle.load(f)
         if parameterfile is not None:
             self.load_state_dict(torch.load(parameterfile))
-    def save(self,stdfile,parameterfile):
+    def save(self,parameterfile,stdfile,):
         torch.save(self.state_dict(),parameterfile)
         with open(stdfile, 'wb') as f:
             pickle.dump(self.standardScaler_fit,f)
@@ -119,12 +120,14 @@ class MyGen_net(nn.Module):
    
 
 class trainClassifyGenNet():
-    def __init__(self,net,populationNum,parentsNum,noiseStd):
+    def __init__(self,net,populationNum,parentsNum,noiseStd,saveParameterFile,saveStdFile):
         self.net = net
         self.nets =[]
         self.populationNum = populationNum
         self.parentsNum = parentsNum
         self.noiseStd = noiseStd
+        self.saveParameterFile = saveParameterFile
+        self.saveStdFile = saveStdFile
         for _ in range(self.populationNum):
             self.nets.append(copy.deepcopy(net))
 
@@ -157,10 +160,9 @@ class trainClassifyGenNet():
             writer.add_scalar("reward_max", reward_max, gen_idx)
             logging.debug("gen_idx={},reward_mean={},reward_std={},reward_max={}".format(gen_idx,reward_mean,reward_std,reward_max))
             if reward_max > cur_max_rewards:
-                torch.save(population[0][0].state_dict(),saveParameter)
-                with open(saveStad, 'wb') as f:
-                    pickle.dump(self.standardScaler_fit,f)
-                logging.debug("save reward_max={},state_dict.keys()={}".format(reward_max,population[0][0].state_dict().keys()))
+                population[0][0].save(self.saveParameterFile,self.saveStdFile)
+                if reward_max > 0.99:
+                    return
 
 
             prev_population = population
@@ -181,8 +183,16 @@ def classifyGenTest():
     PARENTS_COUNT = 10
     mindata = mnist_data()
     net = MyGen_net(num_inputs=28*28,num_classes=10)
-    trainInstance = trainClassifyGenNet(net,POPULATION_SIZE,PARENTS_COUNT,NOISE_STD)
+    net.load(saveParameter,saveStad)
+    trainInstance = trainClassifyGenNet(net,POPULATION_SIZE,PARENTS_COUNT,NOISE_STD,saveParameter,saveStad)
     trainInstance.fit(mindata.X_train,mindata.y_train)
+    net.load(saveParameter,saveStad)
+    y_pred =net.predict(mindata.X_test)
+    logging.debug("y_pred={}".format(y_pred))
+    logging.debug(".........accuracy={}".format(accuracy_score(mindata.y_test,y_pred)))
+
+
+
 
 def mymoduleTest():
     mindata = mnist_data()
