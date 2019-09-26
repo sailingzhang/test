@@ -7,6 +7,7 @@ from log_init import log_init
 
 import os
 import gym
+from gym import wrappers
 import ptan
 import argparse
 import numpy as np
