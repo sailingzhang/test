@@ -63,7 +63,7 @@ if __name__ == "__main__":
         if args.year is not None:
             stock_data = data.load_year_data(args.year)
         else:
-            stock_data = {"YNDX": data.load_relative(args.data)}
+            stock_data = {"YNDX": data.load_relative(args.data)}#run here by default argument
         env = environ.StocksEnv(stock_data, bars_count=BARS_COUNT, reset_on_close=True, state_1d=False, volumes=False)
         env_tst = environ.StocksEnv(stock_data, bars_count=BARS_COUNT, reset_on_close=True, state_1d=False)
     elif os.path.isdir(args.data):

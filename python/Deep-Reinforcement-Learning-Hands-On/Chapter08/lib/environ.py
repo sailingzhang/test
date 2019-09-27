@@ -5,6 +5,7 @@ import enum
 import numpy as np
 
 from . import data
+import logging
 
 DEFAULT_BARS_COUNT = 10
 DEFAULT_COMMISSION_PERC = 0.1
@@ -53,6 +54,9 @@ class State:
         res = np.ndarray(shape=self.shape, dtype=np.float32)
         shift = 0
         for bar_idx in range(-self.bars_count+1, 1):
+            logging.debug("self._offset={}.bar_idx={},self.shape={},shift={}".format(self._offset,bar_idx,self.shape,shift))
+            # DEBUG self._offset=12612.bar_idx=-5,self.shape=(32,),shift=12
+
             res[shift] = self._prices.high[self._offset + bar_idx]
             shift += 1
             res[shift] = self._prices.low[self._offset + bar_idx]
@@ -162,6 +166,7 @@ class StocksEnv(gym.Env):
     def reset(self):
         # make selection of the instrument and it's offset. Then reset the state
         self._instrument = self.np_random.choice(list(self._prices.keys()))
+        logging.debug("random select instrument={}".format(self._instrument))
         prices = self._prices[self._instrument]
         bars = self._state.bars_count
         if self.random_ofs_on_reset:
