@@ -63,8 +63,8 @@ if __name__ == "__main__":
         if args.year is not None:
             stock_data = data.load_year_data(args.year)
         else:
-            stock_data = {"YNDX": data.load_relative(args.data)}#run here by default argument
-        env = environ.StocksEnv(stock_data, bars_count=BARS_COUNT, reset_on_close=True, state_1d=False, volumes=False)
+            stock_data = {"YNDX": data.load_relative(args.data)}
+        env = environ.StocksEnv(stock_data, bars_count=BARS_COUNT, reset_on_close=True, state_1d=False, volumes=False)#run here by default argument
         env_tst = environ.StocksEnv(stock_data, bars_count=BARS_COUNT, reset_on_close=True, state_1d=False)
     elif os.path.isdir(args.data):
         env = environ.StocksEnv.from_dir(args.data, bars_count=BARS_COUNT, reset_on_close=True, state_1d=False)
@@ -110,7 +110,7 @@ if __name__ == "__main__":
                 eval_states = np.array(eval_states, copy=False)
 
             if step_idx % EVAL_EVERY_STEP == 0:
-                mean_val = common.calc_values_of_states(eval_states, net, device=device)
+                mean_val = common.calc_values_of_states(eval_states, net, device=device)#this is calculate virtual mean value for such net.
                 writer.add_scalar("values_mean", mean_val, step_idx)
                 if best_mean_val is None or best_mean_val < mean_val:
                     if best_mean_val is not None:
@@ -132,7 +132,7 @@ if __name__ == "__main__":
                 torch.save(net.state_dict(), os.path.join(saves_path, "checkpoint-%3d.data" % idx))
 
             if step_idx % VALIDATION_EVERY_STEP == 0:
-                res = validation.validation_run(env_tst, net, device=device)
+                res = validation.validation_run(env_tst, net, device=device)#valid calculate the value,I guess that if mean_val is high and validation value is low,it is overfit.
                 for key, val in res.items():
                     writer.add_scalar(key + "_test", val, step_idx)
                 res = validation.validation_run(env_val, net, device=device)
