@@ -4,6 +4,7 @@ import gym
 from gym import spaces
 import pandas as pd
 import numpy as np
+import logging
 
 MAX_ACCOUNT_BALANCE = 2147483647
 MAX_NUM_SHARES = 2147483647
@@ -56,7 +57,7 @@ class StockTradingEnv(gym.Env):
             self.total_shares_sold / MAX_NUM_SHARES,
             self.total_sales_value / (MAX_NUM_SHARES * MAX_SHARE_PRICE),
         ]], axis=0)
-
+        logging.debug("frame.shape={},obs.shape={}".format(frame.shape,obs.shape))
         return obs
 
     def _take_action(self, action):

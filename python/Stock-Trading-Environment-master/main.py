@@ -1,3 +1,8 @@
+import sys
+sys.path.append("..")
+import logging
+from log_init import log_init
+
 import gym
 import json
 import datetime as dt
@@ -10,6 +15,8 @@ from env.StockTradingEnv import StockTradingEnv
 
 import pandas as pd
 
+
+log_init("../../stock.log")
 df = pd.read_csv('./data/AAPL.csv')
 df = df.sort_values('Date')
 
