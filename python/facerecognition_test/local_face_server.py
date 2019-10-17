@@ -314,7 +314,7 @@ def test():
     while True:
         bTime = time.time()
         logging.debug("tensorflow begin")
-        boxs = detect.defect_path("pic/heying.jpg")
+        boxs = detect.defect_path("pic/test.jpg")
         eTime = time.time()
         logging.debug("tensorflow end,costTime={}".format(eTime-bTime))
         logging.debug("len(boxs)={},boxs={}".format(len(boxs),boxs))

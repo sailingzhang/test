@@ -35,6 +35,8 @@ import tensorflow as tf
 import cv2
 import os
 import  logging
+from tensorflow.python.framework import graph_util
+
 
 def layer(op):
     """Decorator for composable network layers."""
@@ -484,7 +486,7 @@ def create_tvu_mtcnn(sess,model_path):
         onet["prob1"] = tvusoftmax(onet["conv6-1"],1,name="prob1")
         onet["conv6-2"] = tvufc(onet["prelu5"],4,relu=False,name="conv6-2")
         onet["conv6-3"] = tvufc(onet["prelu5"],10,relu=False,name="conv6-3")
-    writer = tf.summary.FileWriter("logs/", sess.graph)
+    # writer = tf.summary.FileWriter("logs/", sess.graph)
     tvuload(os.path.join(model_path, 'det1.npy'), sess,"pnet")
     tvuload(os.path.join(model_path, 'det2.npy'), sess,"rnet")
     tvuload(os.path.join(model_path, 'det3.npy'), sess,"onet")
@@ -495,15 +497,79 @@ def create_tvu_mtcnn(sess,model_path):
     pnet_fun = lambda img : sess.run((pnet["conv4-2"], pnet["prob1"]), feed_dict={'pnet/input:0':img})
     rnet_fun = lambda img : sess.run((rnet["conv5-2"], rnet["prob1"]), feed_dict={'rnet/input:0':img})
     onet_fun = lambda img : sess.run((onet["conv6-2"], onet["conv6-3"], onet["prob1"]), feed_dict={'onet/input:0':img})
+
+    # save_as_pb(sess,['pnet/conv4-2/BiasAdd','pnet/prob1','rnet/conv5-2/conv5-2','rnet/prob1','onet/conv6-2/conv6-2','onet/conv6-3/conv6-3','onet/prob1'],"/tmp/myfirst.pb")
     return pnet_fun, rnet_fun, onet_fun
     # return None,None,None
 
 
+def create_tvu_mtcnn_pb(sess,pbmodelfile):
+    # with tf.variable_scope('onet'):
+    #     img1 =tf.placeholder(tf.float32, (None,None,None,3), 'input')
+    # with tf.variable_scope('rnet'):
+    #     img2 = tf.placeholder(tf.float32, (None,24,24,3), 'input')
+    # with tf.variable_scope('onet'):
+    #     img3 = tf.placeholder(tf.float32, (None,48,48,3), 'input')
+    # graph = load_graph(sess,pbmodelfile,{'pnet/input':img1,'rnet/input':img2,'onet/input':img3})
+    graph = load_graph_by_session2(sess,pbmodelfile)
+    # sess.graph = graph
+    pnet_fun = lambda img : sess.run(('pnet/conv4-2/BiasAdd:0', 'pnet/prob1:0'), feed_dict={'pnet/input:0':img})
+    rnet_fun = lambda img : sess.run(('rnet/conv5-2/conv5-2:0', 'rnet/prob1:0'), feed_dict={'rnet/input:0':img})
+    onet_fun = lambda img : sess.run(('onet/conv6-2/conv6-2:0', 'onet/conv6-3/conv6-3:0', 'onet/prob1:0'), feed_dict={'onet/input:0':img})
+    return pnet_fun, rnet_fun, onet_fun
+def save_as_pb(sess,output_node_names,pbfile):
+    if os.path.exists(pbfile):
+        os.remove(pbfile)
+    graph = sess.graph
+    # graph = tf.get_default_graph()
+    input_graph_def = graph.as_graph_def()
+    # output_node_names = ['cnn/output']
+
+    output_graph_def = graph_util.convert_variables_to_constants(sess, input_graph_def, output_node_names)
+
+    with tf.gfile.GFile(pbfile, 'wb') as f:
+        f.write(output_graph_def.SerializeToString())
+    
+    return pbfile
 
 
+def load_graph_by_session(sess,path_to_pb):
+    with tf.gfile.GFile(path_to_pb, "rb") as f:
+        graph_def = tf.GraphDef()
+        graph_def.ParseFromString(f.read())
+    # with tf.Graph().as_default() as graph:
+    with sess.graph.as_default() as graph:
+        tf.import_graph_def(graph_def, name='')
+        return graph
+
+def load_graph_by_session2(sess,model_filepath):
+        with tf.gfile.GFile(model_filepath, 'rb') as f:
+            graph_def = tf.GraphDef()
+            graph_def.ParseFromString(f.read())
+        logging.debug('Check out the input placeholders:')
+        nodes = [n.name + ' => ' +  n.op for n in graph_def.node if n.op in ('Placeholder')]
+        for node in nodes:
+            logging.debug("node={}".format(node))
+
+        with sess.graph.as_default() as graph:
+            tf.import_graph_def(graph_def,name='')
+            graph.finalize()
+            logging.debug('Model loading complete!')
+            # Get layer names
+            layers = [op.name for op in graph.get_operations()]
+            for layer in layers:
+                logging.debug("layer={}".format(layer))
+            return graph
+        
 
 
-
+def load_graph(path_to_pb):
+    with tf.gfile.GFile(path_to_pb, "rb") as f:
+        graph_def = tf.GraphDef()
+        graph_def.ParseFromString(f.read())
+    with tf.Graph().as_default() as graph:
+        tf.import_graph_def(graph_def, name='')
+        return graph
 
 
 def creat_mtcnn_pytorch(model_path):
@@ -522,7 +588,7 @@ def detect_face(img, minsize, pnet, rnet, onet, threshold, factor):
     factor: the factor used to create a scaling pyramid of face sizes to detect in the image.
     """
 
-    minsize = 100
+    minsize = 12
 
 
 
@@ -543,6 +609,7 @@ def detect_face(img, minsize, pnet, rnet, onet, threshold, factor):
 
     # first stage
     logging.debug("tensorflow len(scales)={}".format(len(scales)))
+    img_y_list=[]
     for scale in scales:
         hs=int(np.ceil(h*scale))
         ws=int(np.ceil(w*scale))
@@ -550,13 +617,13 @@ def detect_face(img, minsize, pnet, rnet, onet, threshold, factor):
         im_data = (im_data-127.5)*0.0078125
         img_x = np.expand_dims(im_data, 0)
         img_y = np.transpose(img_x, (0,2,1,3))
-        logging.debug("img_y.shape={}".format(img_y.shape))
+        logging.debug("img_x.shape={},img_y.shape={}".format(img_x.shape,img_y.shape))
         out = pnet(img_y)
-        logging.debug("out[0].shape={},out[1].shape={}".format(out[0].shape,out[1].shape))
         out0 = np.transpose(out[0], (0,2,1,3))
         out1 = np.transpose(out[1], (0,2,1,3))
         
         boxes, _ = generateBoundingBox(out1[0,:,:,1].copy(), out0[0,:,:,:].copy(), scale, threshold[0])
+        logging.debug("out[0].shape={},out[1].shape={},boxes.shape={}".format(out[0].shape,out[1].shape,boxes.shape))
         # inter-scale nms
         pick = nms(boxes.copy(), 0.5, 'Union')
         if boxes.size>0 and pick.size>0:
@@ -598,6 +665,9 @@ def detect_face(img, minsize, pnet, rnet, onet, threshold, factor):
         dy, edy, dx, edx, y, ey, x, ex, tmpw, tmph = pad(total_boxes.copy(), w, h)
 
     numbox = total_boxes.shape[0]
+    logging.debug("after pnet,total_boxes.shape={}".format(total_boxes.shape))
+    # DEBUG after pnet,total_boxes.shape=(12, 5)
+
     
     # """my test begin"""
     # logging.debug("before total_boxes.shape={},total_boxes={}".format(total_boxes.shape,total_boxes))
@@ -1069,13 +1139,14 @@ def generateBoundingBox(imap, reg, scale, t):
     """Use heatmap to generate bounding boxes"""
     stride=2
     cellsize=12
-
+    
     imap = np.transpose(imap)
     dx1 = np.transpose(reg[:,:,0])
     dy1 = np.transpose(reg[:,:,1])
     dx2 = np.transpose(reg[:,:,2])
     dy2 = np.transpose(reg[:,:,3])
     y, x = np.where(imap >= t)
+    logging.debug("y={},x={}".format(y,x))
     if y.shape[0]==1:
         dx1 = np.flipud(dx1)
         dy1 = np.flipud(dy1)
@@ -1089,6 +1160,9 @@ def generateBoundingBox(imap, reg, scale, t):
     q1 = np.fix((stride*bb+1)/scale)
     q2 = np.fix((stride*bb+cellsize-1+1)/scale)
     boundingbox = np.hstack([q1, q2, np.expand_dims(score,1), reg])
+    # logging.debug("boundingbox={},reg={}".format(boundingbox,reg))
+    logging.debug("q1.shape={},q2.shape={},score.shape={},reg.shape={}".format(q1.shape,q2.shape,score.shape,reg.shape))
+    logging.debug("imap.shape={},reg.shape={},dx1.shape={},boundingbox.shape={}".format(imap.shape,reg.shape,dx1.shape,boundingbox.shape))
     return boundingbox, reg
  
 # function pick = nms(boxes,threshold,type)
@@ -1104,6 +1178,7 @@ def nms(boxes, threshold, method):
     I = np.argsort(s)
     pick = np.zeros_like(s, dtype=np.int16)
     counter = 0
+    logging.debug("I={}".format(I))
     while I.size>0:
         i = I[-1]
         pick[counter] = i
