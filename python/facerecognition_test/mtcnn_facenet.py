@@ -70,7 +70,7 @@ class detectface:
         logging.info("detectface init begin")
         self.minsize = 20 # minimum size of face
         self.threshold = [ 0.7, 0.8, 0.9 ]  # three steps's threshold
-        self.factor = 0.65 # scale factor
+        self.factor = 0.705 # scale factor
         self.gpu_memory_fraction = 0.4
         self.cropped_image_size = 80
         self.count =0
@@ -98,6 +98,8 @@ class detectface:
         self.sess.as_default()
         # self.pnet, self.rnet, self.onet = align.detect_face.create_mtcnn(self.sess, None)
         self.pnet, self.rnet, self.onet = align.detect_face.create_tvu_mtcnn(self.sess, None)
+        # self.pnet, self.rnet, self.onet = align.detect_face.create_tvu_mtcnn_pb(self.sess,"/tmp/myfirst.pb")
+        
         tf.get_default_graph().finalize()
 
         # self.pnet, self.rnet, self.onet =create_pytorch_mtcnn()

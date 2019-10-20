@@ -135,6 +135,33 @@ def biasTest():
     for param in model.named_parameters():
         logging.debug("parar[0]={},parame[1].data.size()={}".format(param[0],param[1].data.size()))
 
+
+
+
+from itertools import combinations
+def calSet():
+    R = set(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n' ])
+    C = set(['b', 'd', 'f', 'l', 'n'])
+    RR=[]
+    RR.append(set([ 'a', 'c', 'e', 'g', 'i', 'k', 'l', 'm']))
+    RR.append(set([ 'b', 'c', 'd', 'h', 'k']))
+    RR.append(set([ 'd', 'f', 'g', 'n']))
+    RR.append(set([ 'b', 'f', 'g', 'i', 'j']))
+    RR.append(set([ 'b', 'k', 'n']))
+    logging.debug("RR={}".format(RR))
+    oriData={0,1,2,3,4}
+    for i in range(1,6):
+        for combina in combinations(oriData, i):
+            union=set()
+            for index in combina:
+                union = union | RR[index]
+            logging.debug("i={},combina={},union={}".format(i,combina,union))
+            if union & C == C:
+                logging.info("anser: combina={},len(combina)={},union={}".format(combina,len(combina),union))
+                # return
+            
+
+
 if __name__ == "__main__":
     log_init("test.log")
     # filterTest()
@@ -144,4 +171,5 @@ if __name__ == "__main__":
     # maxTest()
     # tenfortest()
     # classTest()
-    biasTest()
+    # biasTest()
+    calSet()

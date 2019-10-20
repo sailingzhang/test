@@ -314,10 +314,14 @@ def test():
     while True:
         bTime = time.time()
         logging.debug("tensorflow begin")
-        ret = detect.defect_path("pic/timg.jpg")
+        boxs = detect.defect_path("pic/test.jpg")
         eTime = time.time()
         logging.debug("tensorflow end,costTime={}".format(eTime-bTime))
-        logging.debug("len(ret)={},ret={}".format(len(ret),ret))
+        logging.debug("len(boxs)={},boxs={}".format(len(boxs),boxs))
+        for j in range(boxs.shape[0]):
+            BoxWidth = int(boxs[j][2] -boxs[j][0])
+            BoxHeight = int(boxs[j][3] -boxs[j][1])
+            logging.debug("width={},height={}".format(BoxWidth,BoxHeight))
         return
     
 def test_remoteserver():

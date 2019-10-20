@@ -51,6 +51,7 @@ class State:
         """
         Convert current state into numpy array.
         """
+        #convert current state which was compose of self.bars_count elements before self._offset.
         res = np.ndarray(shape=self.shape, dtype=np.float32)
         shift = 0
         for bar_idx in range(-self.bars_count+1, 1):
@@ -110,7 +111,7 @@ class State:
         close = self._cur_close()
         done |= self._offset >= self._prices.close.shape[0]-1
 
-        if self.have_position and not self.reward_on_close:
+        if self.have_position and not self.reward_on_close:#because self._offset+=1,so new observation born. I think that there is should no such reward in real trading environment,
             reward += 100.0 * (close - prev_close) / prev_close
 
         return reward, done
