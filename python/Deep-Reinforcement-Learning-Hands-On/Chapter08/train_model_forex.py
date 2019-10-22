@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import sys
-sys.path.append("C:\\mydata\\develop\\mygit\\gym_trading")
+# sys.path.append("C:\\mydata\\develop\\mygit\\gym_trading")
+sys.path.append("/home/sailingzhang/winshare/develop/source/mygit/gym_trading")
 # sys.path.append(" ../../../../gym_trading")
 sys.path.append("../../")
 sys.path.append("../../ptan-master")
@@ -22,7 +23,7 @@ import torch.optim as optim
 from lib import environ, data, models, common, validation
 
 from tensorboardX import SummaryWriter
-from envs.forex_env import forex_candle_env
+from envs.forex_env import forex_candle_env,ValidationRun
 
 
 BATCH_SIZE = 32
@@ -37,6 +38,7 @@ GAMMA = 0.99
 
 REPLAY_SIZE = 100000
 REPLAY_INITIAL = 10000
+# REPLAY_INITIAL = 5000
 
 REWARD_STEPS = 2
 
@@ -51,14 +53,15 @@ EPSILON_STEPS = 1000000
 
 CHECKPOINT_EVERY_STEP = 1000000
 VALIDATION_EVERY_STEP = 100000
+# VALIDATION_EVERY_STEP = 6000
 
-
+FOREX_DATA_PATH="../../../../gym_trading/data/FOREX_EURUSD_1H_ASK.csv"
 
 
 def test():    
     log_init("../../ch08_train_model.log")
     print("fuck")
-    logging.debug("enter")
+    logging.info("enter")
     # return
     parser = argparse.ArgumentParser()
     parser.add_argument("--cuda", default=False, action="store_true", help="Enable cuda")
@@ -92,13 +95,14 @@ def test():
     # env_val = environ.StocksEnv(val_data, bars_count=BARS_COUNT, reset_on_close=True, state_1d=False)
 
     logging.debug("begin to load env")
-    npdata = np.loadtxt(FOREC_DATA,delimiter=",",skiprows=1,usecols=(1,2,3,4,5)).astype("float32")
-    logging.debug("npdata={}".format(npdata))
-    env = forex_candle_env(npdata=npdata, window_size=600,initCapitalPoint=2000,feePoint=20)
+    env = forex_candle_env(FOREX_DATA_PATH, window_size=600,initCapitalPoint=2000,feePoint=20)
+    env_val = forex_candle_env(FOREX_DATA_PATH, window_size=600,initCapitalPoint=2000,feePoint=20)
     logging.debug("env.observation_sapce={},env.action_space.n={}".format(env.observation_space,env.action_space.n))
 
     writer = SummaryWriter(comment="-simple-" + args.run)
-    net = models.SimpleFFDQN(env.observation_space.shape[0], env.action_space.n).to(device)
+    # net = models.SimpleFFDQN(env.observation_space.shape[0], env.action_space.n).to(device)
+    net = models.SimpleFFDQN_V(env.observation_space.shape[0], env.action_space.n).to(device)
+
     tgt_net = ptan.agent.TargetNet(net)
     selector = ptan.actions.EpsilonGreedyActionSelector(EPSILON_START)
     agent = ptan.agent.DQNAgent(net, selector, device=device)
@@ -114,6 +118,8 @@ def test():
     with common.RewardTracker(writer, np.inf, group_rewards=100) as reward_tracker:
         while True:
             step_idx += 1
+            if 0 == step_idx%1000:
+                logging.info("step_idx={}".format(step_idx))
             buffer.populate(1)
             selector.epsilon = max(EPSILON_STOP, EPSILON_START - step_idx / EPSILON_STEPS)
 
@@ -125,7 +131,7 @@ def test():
                 continue
 
             if eval_states is None:
-                print("Initial buffer populated, start training")
+                logging.debug("Initial buffer populated, start training")
                 eval_states = buffer.sample(STATES_TO_EVALUATE)
                 eval_states = [np.array(transition.state, copy=False) for transition in eval_states]
                 eval_states = np.array(eval_states, copy=False)
@@ -135,30 +141,35 @@ def test():
                 writer.add_scalar("values_mean", mean_val, step_idx)
                 if best_mean_val is None or best_mean_val < mean_val:
                     if best_mean_val is not None:
-                        print("%d: Best mean value updated %.3f -> %.3f" % (step_idx, best_mean_val, mean_val))
+                        logging.debug("%d: Best mean value updated %.3f -> %.3f" % (step_idx, best_mean_val, mean_val))
                     best_mean_val = mean_val
                     torch.save(net.state_dict(), os.path.join(saves_path, "mean_val-%.3f.data" % mean_val))
 
+            logging.debug("begin optimer,step_idx={}".format(step_idx))
             optimizer.zero_grad()
             batch = buffer.sample(BATCH_SIZE)
-            loss_v = common.calc_loss(batch, net, tgt_net.target_model, GAMMA ** REWARD_STEPS, device=device)
+            loss_v = common.calc_loss_V(batch, net, tgt_net.target_model, GAMMA ** REWARD_STEPS, device=device)
             loss_v.backward()
             optimizer.step()
 
             if step_idx % TARGET_NET_SYNC == 0:
+                logging.info("begin sync,step_idex={}".format(step_idx))
                 tgt_net.sync()
 
             if step_idx % CHECKPOINT_EVERY_STEP == 0:
+                logging.info("begin save,step_idx={}".format(step_idx))
                 idx = step_idx // CHECKPOINT_EVERY_STEP
                 torch.save(net.state_dict(), os.path.join(saves_path, "checkpoint-%3d.data" % idx))
 
             if step_idx % VALIDATION_EVERY_STEP == 0:
-                res = validation.validation_run(env_tst, net, device=device)
-                for key, val in res.items():
-                    writer.add_scalar(key + "_test", val, step_idx)
-                res = validation.validation_run(env_val, net, device=device)
-                for key, val in res.items():
-                    writer.add_scalar(key + "_val", val, step_idx)
+                logging.info("begin valid,step_idx={}".format(step_idx))
+                ValidationRun(env_val,net,episodes= 5,device= device,epsilon= 0)
+                # res = validation.validation_run(env_tst, net, device=device)
+                # for key, val in res.items():
+                #     writer.add_scalar(key + "_test", val, step_idx)
+                # res = validation.validation_run(env_val, net, device=device)
+                # for key, val in res.items():
+                #     writer.add_scalar(key + "_val", val, step_idx)
 
 
 if __name__ == "__main__":

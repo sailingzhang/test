@@ -56,6 +56,34 @@ class SimpleFFDQN(nn.Module):
         return val + adv - adv.mean(dim=1, keepdim=True)
 
 
+class SimpleFFDQN_V(nn.Module):
+    def __init__(self, obs_len, actions_n):
+        super(SimpleFFDQN_V, self).__init__()
+        self.device = torch.device("cpu")
+
+        self.fc_val = nn.Sequential(
+            nn.Linear(obs_len, 512),
+            nn.ReLU(),
+            nn.Linear(512, 512),
+            nn.ReLU(),
+            nn.Linear(512, 1)
+        )
+
+        self.fc_adv = nn.Sequential(
+            nn.Linear(obs_len, 512),
+            nn.ReLU(),
+            nn.Linear(512, 512),
+            nn.ReLU(),
+            nn.Linear(512, actions_n)
+        )
+
+    def forward(self, x):
+        if isinstance(x, np.ndarray):
+            x = torch.tensor(x).to(self.device)
+        val = self.fc_val(x)
+        adv = self.fc_adv(x)
+        return val + adv - adv.mean(dim=1, keepdim=True)
+
 class DQNConv1D(nn.Module):
     def __init__(self, shape, actions_n):
         super(DQNConv1D, self).__init__()
