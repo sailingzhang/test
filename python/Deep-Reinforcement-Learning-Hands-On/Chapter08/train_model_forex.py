@@ -58,8 +58,17 @@ VALIDATION_EVERY_STEP = 100000
 FOREX_DATA_PATH="../../../../gym_trading/data/FOREX_EURUSD_1H_ASK.csv"
 
 
+def test2():
+    logging.debug("enter")
+    logging.info("info enter")
+    device = torch.device("cpu")
+    env = forex_candle_env(FOREX_DATA_PATH, window_size=600,initCapitalPoint=2000,feePoint=20)
+    net = models.SimpleFFDQN_V(env.observation_space.shape[0], env.action_space.n).to(device)
+    net.load_state_dict(torch.load("saves/forex/mean_val-1218668418.000.data"))
+    ValidationRun(env,net,episodes= 5,device= device,epsilon= 0)
+    logging.debug("exit")
+
 def test():    
-    log_init("../../ch08_train_model.log")
     print("fuck")
     logging.info("enter")
     # return
@@ -173,4 +182,6 @@ def test():
 
 
 if __name__ == "__main__":
+    log_init("/tmp/ch08_train.log")
     test()
+    # test2()

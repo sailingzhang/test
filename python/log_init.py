@@ -20,9 +20,9 @@ def log_init(log_file):
     # logger.handlers.pop()
 
     handler = RotatingFileHandler(log_file, maxBytes=102400000, backupCount=5)
-    handler.setLevel('INFO')
+    handler.setLevel('DEBUG')
     handler.setFormatter(formatter)
-    logger.setLevel('INFO')
+    logger.setLevel('DEBUG')
     logger.addHandler(handler)
     
     logging.info("handlers={}".format(logger.handlers))

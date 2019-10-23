@@ -323,7 +323,17 @@ def test():
             BoxHeight = int(boxs[j][3] -boxs[j][1])
             logging.debug("width={},height={}".format(BoxWidth,BoxHeight))
         return
-    
+def testEmb():
+    faceEmd = facenet_ebeding(work_dir+"/embed_model")
+    datalist=[]
+    for i in range(10):
+        datalist.append("../../../../mygit/tmp/aligned/Bug/IMG-20181018-WA0034.png")
+    while True:
+        bTime = time.time()
+        faceEmd.embed_paths(datalist)
+        eTime = time.time()
+        logging.debug("tensorflow end,costTime={}".format(eTime-bTime))
+
 def test_remoteserver():
     logging.info("enter")
     a = tf.constant(1.0)
@@ -349,10 +359,11 @@ def pytorch_test():
 
 if __name__ == '__main__':
     port = sys.argv[1]
-    log_init.log_init("p_local_face_server_"+port+".log")
+    log_init.log_init("/tmp/p_local_face_server_"+port+".log")
     logging.info("start gServer")
     # biastest()
     # pytorch_test()
-    test()
+    # test()
+    testEmb()
     # threading.Thread(target=timer).start()
     # faceServe(port)

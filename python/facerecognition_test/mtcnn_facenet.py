@@ -181,8 +181,8 @@ class detectface:
 class facenet_ebeding:
     def __init__(self,modelpath):
         self.modelpath=modelpath
-        self.emb = None#self.get_emb_img()
-        threading.Thread(target=facenet_ebeding.get_emb_img,args=(self,)).start()
+        self.emb =self.get_emb_img()
+        # threading.Thread(target=facenet_ebeding.get_emb_img,args=(self,)).start()
     def get_emb_img(self):
         with tf.Graph().as_default():
             sess = tf.Session()
@@ -204,24 +204,24 @@ class facenet_ebeding:
                     feed_dict = { images_placeholder: prewhitened_stack, phase_train_placeholder:False }
                     logging.debug("begin run embeddings")
                     emb = sess.run(embeddings, feed_dict=feed_dict)
-                    logging.debug("end run embedding, type(emb)={}".format(type(emb)))
+                    logging.debug("end run embedding, type(emb)={},emb.shape={}".format(type(emb),emb.shape))
                     return emb
                 self.emb = embed_base
                 return embed_base
 
     def embed(self,aligned_img_list):
-        while self.emb is None:
-            logging.info("loading emb,wait")
-            sleep(5)
+        # while self.emb is None:
+        #     logging.info("loading emb,wait")
+        #     sleep(5)
         return self.emb(aligned_img_list)
     def embed_paths(self,alined_img_paths):
-        while self.emb is None:
-            logging.info("loading emb,wait")
-            sleep(5)
+        # while self.emb is None:
+        #     logging.info("loading emb,wait")
+        #     sleep(5)
         img_list=[]
         for i in range(len(alined_img_paths)):
             logging.debug("begin read img={}".format(alined_img_paths[i]))
-            img = misc.imread(alined_img_paths[i])
+            img = imageio.imread(alined_img_paths[i])
             img_list.append(img)
         return self.emb(img_list)
     
