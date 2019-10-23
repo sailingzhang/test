@@ -116,6 +116,7 @@ if __name__ == "__main__":
             loss_v = common.calc_loss(batch, net, tgt_net.target_model, GAMMA ** REWARD_STEPS, device=device)
             loss_v.backward()
             optimizer.step()
+        
 
             if step_idx % TARGET_NET_SYNC == 0:
                 tgt_net.sync()

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
-# sys.path.append("C:\\mydata\\develop\\mygit\\gym_trading")
-sys.path.append("/home/sailingzhang/winshare/develop/source/mygit/gym_trading")
+sys.path.append("C:\\mydata\\develop\\mygit\\gym_trading")
+# sys.path.append("/home/sailingzhang/winshare/develop/source/mygit/gym_trading")
 # sys.path.append(" ../../../../gym_trading")
 sys.path.append("../../")
 sys.path.append("../../ptan-master")
@@ -52,8 +52,8 @@ EPSILON_STOP = 0.1
 EPSILON_STEPS = 1000000
 
 CHECKPOINT_EVERY_STEP = 1000000
-VALIDATION_EVERY_STEP = 100000
-# VALIDATION_EVERY_STEP = 6000
+# VALIDATION_EVERY_STEP = 100000
+VALIDATION_EVERY_STEP = 10000
 
 FOREX_DATA_PATH="../../../../gym_trading/data/FOREX_EURUSD_1H_ASK.csv"
 
@@ -162,7 +162,7 @@ def test():
             optimizer.step()
 
             if step_idx % TARGET_NET_SYNC == 0:
-                logging.info("begin sync,step_idex={}".format(step_idx))
+                logging.info("begin sync,step_idex={},loss={}".format(step_idx,loss_v))
                 tgt_net.sync()
 
             if step_idx % CHECKPOINT_EVERY_STEP == 0:
@@ -172,7 +172,7 @@ def test():
 
             if step_idx % VALIDATION_EVERY_STEP == 0:
                 logging.info("begin valid,step_idx={}".format(step_idx))
-                ValidationRun(env_val,net,episodes= 5,device= device,epsilon= 0)
+                ValidationRun(env_val,net,episodes= 1,device= device,epsilon= 0)
                 # res = validation.validation_run(env_tst, net, device=device)
                 # for key, val in res.items():
                 #     writer.add_scalar(key + "_test", val, step_idx)
@@ -182,6 +182,6 @@ def test():
 
 
 if __name__ == "__main__":
-    log_init("/tmp/ch08_train.log")
+    log_init("../../../../tmp/ch08_train.log",'INFO')
     test()
     # test2()
