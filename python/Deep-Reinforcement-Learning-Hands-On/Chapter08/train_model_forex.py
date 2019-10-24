@@ -55,8 +55,8 @@ CHECKPOINT_EVERY_STEP = 1000000
 # VALIDATION_EVERY_STEP = 100000
 VALIDATION_EVERY_STEP = 10000
 
-FOREX_DATA_PATH="../../../../gym_trading/data/FOREX_EURUSD_1H_ASK.csv"
-
+# FOREX_DATA_PATH="../../../../gym_trading/data/FOREX_EURUSD_1H_ASK.csv"
+FOREX_DATA_PATH="../../../../gym_trading/data/FOREX_EURUSD_1H_ASK_CLOSE.csv"
 
 def test2():
     logging.debug("enter")
@@ -106,7 +106,7 @@ def test():
     logging.debug("begin to load env")
     env = forex_candle_env(FOREX_DATA_PATH, window_size=600,initCapitalPoint=2000,feePoint=20)
     env_val = forex_candle_env(FOREX_DATA_PATH, window_size=600,initCapitalPoint=2000,feePoint=20)
-    logging.debug("env.observation_sapce={},env.action_space.n={}".format(env.observation_space,env.action_space.n))
+    logging.info("env.observation_sapce={},env.action_space.n={}".format(env.observation_space,env.action_space.n))
 
     writer = SummaryWriter(comment="-simple-" + args.run)
     # net = models.SimpleFFDQN(env.observation_space.shape[0], env.action_space.n).to(device)
