@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
-sys.path.append("C:\\mydata\\develop\\mygit\\gym_trading")
-# sys.path.append("/home/sailingzhang/winshare/develop/source/mygit/gym_trading")
+# sys.path.append("C:\\mydata\\develop\\mygit\\gym_trading")
+sys.path.append("/home/sailingzhang/winshare/develop/source/mygit/gym_trading")
 # sys.path.append(" ../../../../gym_trading")
 sys.path.append("../../")
 sys.path.append("../../ptan-master")
@@ -182,6 +182,6 @@ def test():
 
 
 if __name__ == "__main__":
-    log_init("../../../../tmp/ch08_train.log",'INFO')
+    log_init("../../../../tmp/ch08_train.log",'DEBUG')
     test()
     # test2()
