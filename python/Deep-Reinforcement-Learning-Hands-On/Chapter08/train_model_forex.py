@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
-sys.path.append("C:\\mydata\\develop\\mygit\\gym_trading")
-# sys.path.append("/home/sailingzhang/winshare/develop/source/mygit/gym_trading")
+#sys.path.append("C:\\mydata\\develop\\mygit\\gym_trading")
+sys.path.append("/home/sailingzhang/develop/mygit/gym_trading")
 # sys.path.append(" ../../../../gym_trading")
 sys.path.append("../../")
 sys.path.append("../../ptan-master")
@@ -38,7 +38,7 @@ GAMMA = 0.99
 
 REPLAY_SIZE = 100000
 REPLAY_INITIAL = 10000
-# REPLAY_INITIAL = 5000
+#REPLAY_INITIAL = 1000
 
 REWARD_STEPS = 2
 
@@ -52,8 +52,8 @@ EPSILON_STOP = 0.1
 EPSILON_STEPS = 1000000
 
 CHECKPOINT_EVERY_STEP = 1000000
-# VALIDATION_EVERY_STEP = 100000
-VALIDATION_EVERY_STEP = 10000
+VALIDATION_EVERY_STEP = 100000
+#VALIDATION_EVERY_STEP = 1000
 
 # FOREX_DATA_PATH="../../../../gym_trading/data/FOREX_EURUSD_1H_ASK.csv"
 FOREX_DATA_PATH="../../../../gym_trading/data/FOREX_EURUSD_1H_ASK_CLOSE.csv"
@@ -61,7 +61,7 @@ FOREX_DATA_PATH="../../../../gym_trading/data/FOREX_EURUSD_1H_ASK_CLOSE.csv"
 def test2():
     logging.debug("enter")
     logging.info("info enter")
-    device = torch.device("cpu")
+    device = torch.device("cuda")
     env = forex_candle_env(FOREX_DATA_PATH, window_size=600,initCapitalPoint=2000,feePoint=20)
     net = models.SimpleFFDQN_V(env.observation_space.shape[0], env.action_space.n).to(device)
     net.load_state_dict(torch.load("saves/forex/mean_val-1218668418.000.data"))
@@ -73,13 +73,14 @@ def test():
     logging.info("enter")
     # return
     parser = argparse.ArgumentParser()
-    parser.add_argument("--cuda", default=False, action="store_true", help="Enable cuda")
+    parser.add_argument("--cuda", default=True, action="store_true", help="Enable cuda")
     parser.add_argument("--data", default=DEFAULT_STOCKS, help="Stocks file or dir to train on, default=" + DEFAULT_STOCKS)
     parser.add_argument("--year", type=int, help="Year to be used for training, if specified, overrides --data option")
     parser.add_argument("--valdata", default=DEFAULT_VAL_STOCKS, help="Stocks data for validation, default=" + DEFAULT_VAL_STOCKS)
     parser.add_argument("-r", "--run", required=True, help="Run name")
     args = parser.parse_args()
     device = torch.device("cuda" if args.cuda else "cpu")
+    logging.info("device={}".format(device))
 
     saves_path = os.path.join("saves", args.run)
     os.makedirs(saves_path, exist_ok=True)

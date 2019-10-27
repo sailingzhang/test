@@ -88,8 +88,8 @@ def unpack_batch(batch):
 def calc_loss_V(batch, net, tgt_net, gamma, device="cpu"):
     states, actions, rewards, dones, next_states = unpack_batch(batch)
 
-    # states_v = torch.tensor(states).to(device)
-    states_v = states
+    states_v = torch.tensor(states).to(device)
+    #states_v = states
     next_states_v = torch.tensor(next_states).to(device)
     actions_v = torch.tensor(actions).to(device)
     rewards_v = torch.tensor(rewards).to(device)
