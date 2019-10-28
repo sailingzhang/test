@@ -207,6 +207,7 @@ class facenet_ebeding:
                     logging.debug("end run embedding, type(emb)={},emb.shape={}".format(type(emb),emb.shape))
                     return emb
                 self.emb = embed_base
+                tf.get_default_graph().finalize()
                 return embed_base
 
     def embed(self,aligned_img_list):

@@ -324,7 +324,10 @@ def test():
             logging.debug("width={},height={}".format(BoxWidth,BoxHeight))
         return
 def testEmb():
-    faceEmd = facenet_ebeding(work_dir+"/embed_model")
+    logging.info("loademb begin")
+    faceEmd = facenet_ebeding(work_dir+"/embed_model/20180402-114759.pb")
+    logging.info("loademb end")
+    # return
     datalist=[]
     for i in range(10):
         datalist.append("../../../../mygit/tmp/aligned/Bug/IMG-20181018-WA0034.png")
