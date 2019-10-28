@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
+
+
 import sys
-#sys.path.append("C:\\mydata\\develop\\mygit\\gym_trading")
-sys.path.append("/home/sailingzhang/develop/mygit/gym_trading")
-# sys.path.append(" ../../../../gym_trading")
+work_dir="C:\\mydata\\develop\\mygit"
+# work_dir= "/home/sailingzhang/develop/mygit"
+# work_dir ="/home/sailingzhang/develop/mygit"
+sys.path.append(work_dir)
+sys.path.append(work_dir+"\\test\\python")
 sys.path.append("../../")
 sys.path.append("../../ptan-master")
 
 import logging
 from log_init import log_init
+
 logging.debug("load moundle")
 
 import os
@@ -23,7 +28,7 @@ import torch.optim as optim
 from lib import environ, data, models, common, validation
 
 from tensorboardX import SummaryWriter
-from envs.forex_env import forex_candle_env,ValidationRun
+from gym_trading.envs.forex_env import forex_candle_env,ValidationRun
 
 
 BATCH_SIZE = 32
@@ -52,8 +57,8 @@ EPSILON_STOP = 0.1
 EPSILON_STEPS = 1000000
 
 CHECKPOINT_EVERY_STEP = 1000000
-VALIDATION_EVERY_STEP = 100000
-#VALIDATION_EVERY_STEP = 1000
+# VALIDATION_EVERY_STEP = 100000
+VALIDATION_EVERY_STEP = 1000
 
 # FOREX_DATA_PATH="../../../../gym_trading/data/FOREX_EURUSD_1H_ASK.csv"
 FOREX_DATA_PATH="../../../../gym_trading/data/FOREX_EURUSD_1H_ASK_CLOSE.csv"
@@ -73,7 +78,7 @@ def test():
     logging.info("enter")
     # return
     parser = argparse.ArgumentParser()
-    parser.add_argument("--cuda", default=True, action="store_true", help="Enable cuda")
+    parser.add_argument("--cuda", default=False, action="store_true", help="Enable cuda")
     parser.add_argument("--data", default=DEFAULT_STOCKS, help="Stocks file or dir to train on, default=" + DEFAULT_STOCKS)
     parser.add_argument("--year", type=int, help="Year to be used for training, if specified, overrides --data option")
     parser.add_argument("--valdata", default=DEFAULT_VAL_STOCKS, help="Stocks data for validation, default=" + DEFAULT_VAL_STOCKS)

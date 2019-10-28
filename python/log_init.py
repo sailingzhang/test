@@ -11,24 +11,19 @@ def log_init(log_file,level):
     #                     filename=log_file,
     #                     filemode='w')
 
-
+    console = logging.StreamHandler()
+    console.setLevel(logging.DEBUG)
     #formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
     formatter = logging.Formatter('%(asctime)s %(filename)s[line:%(lineno)d][%(funcName)s] %(levelname)s %(message)s')
-    
-
-    # logger = logging.getLogger('')
-    # logger.handlers.pop()
 
     handler = RotatingFileHandler(log_file, maxBytes=102400000, backupCount=5)
     handler.setLevel(level)
     handler.setFormatter(formatter)
+    logger = logging.getLogger('')
     logger.setLevel(level)
     logger.addHandler(handler)
-    
-    logging.info("handlers={}".format(logger.handlers))
-    # console = logging.StreamHandler()
-    # console.setLevel('ERROR')
-    # console.setFormatter(formatter)
-    # logging.getLogger('').addHandler(console)
 
+    console.setFormatter(formatter)
+    # logging.getLogger('').addHandler(console)
     # logging.Formatter(fmt='%(asctime)s',datefmt='%Y-%m-%d,%H:%M:%S.%f')
+#test
