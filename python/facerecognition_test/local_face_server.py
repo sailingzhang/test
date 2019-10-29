@@ -331,11 +331,18 @@ def testEmb():
     datalist=[]
     for i in range(10):
         datalist.append("../../../../mygit/tmp/aligned/Bug/IMG-20181018-WA0034.png")
+    
+    step = 0
     while True:
         bTime = time.time()
         faceEmd.embed_paths(datalist)
         eTime = time.time()
-        logging.debug("tensorflow end,costTime={}".format(eTime-bTime))
+        logging.debug("step={},tensorflow end,costTime={}".format(step,eTime-bTime))
+        step += 1
+        if 0 == step%3000:
+            logging.info("new one")
+            faceEmd = facenet_ebeding(work_dir+"/embed_model/20180402-114759.pb")
+
 
 def test_remoteserver():
     logging.info("enter")

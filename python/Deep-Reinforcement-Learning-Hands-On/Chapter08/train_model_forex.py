@@ -2,9 +2,9 @@
 
 
 import sys
-work_dir="C:\\mydata\\develop\\mygit"
+# work_dir="C:\\mydata\\develop\\mygit"
 # work_dir= "/home/sailingzhang/develop/mygit"
-# work_dir ="/home/sailingzhang/develop/mygit"
+work_dir ="/home/sailingzhang/winshare/develop/source/mygit"
 sys.path.append(work_dir)
 sys.path.append(work_dir+"\\test\\python")
 sys.path.append("../../")
@@ -188,6 +188,7 @@ def test():
 
 
 if __name__ == "__main__":
-    log_init("../../../../tmp/ch08_train.log",'DEBUG')
+    log_init("../../../../tmp/ch08_train_forex.log",'INFO')
+    logging.info("start")
     test()
     # test2()
