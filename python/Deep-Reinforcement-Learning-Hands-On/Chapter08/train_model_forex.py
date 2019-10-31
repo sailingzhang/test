@@ -201,7 +201,6 @@ def test():
                 check_file = os.path.join(saves_path, P_TIMER_CHECK_DATA_FILE)
                 torch.save(net.state_dict(), check_file)
                 logging.info("save,step_idx={},file={}".format(step_idx,check_file))
-                return #test
 
             if step_idx % VALIDATION_EVERY_STEP == 0:
                 res = ValidationRun(env_val,net,episodes= 1,device= device,epsilon= 0)
