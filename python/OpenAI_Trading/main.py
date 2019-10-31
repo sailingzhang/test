@@ -15,7 +15,7 @@ import gym
 import json
 import datetime as dt
 
-from stable_baselines.common.policies import MlpPolicy
+from stable_baselines.common.policies import MlpPolicy,MlpLnLstmPolicy,MlpLstmPolicy
 from stable_baselines.common.vec_env import DummyVecEnv
 from stable_baselines import PPO2
 
@@ -40,7 +40,7 @@ def test():
     env = DummyVecEnv([lambda: StockTradingEnv(df)])
 
     model = PPO2(MlpPolicy, env, verbose=1)
-    model.learn(total_timesteps=20000)
+    model.learn(total_timesteps=90000)
 
     obs = env.reset()
     for i in range(2000):
@@ -53,7 +53,7 @@ def test2():
     env_val = forex_candle_env(FOREX_DATA_PATH, window_size=600,initCapitalPoint=2000,feePoint=20)
     env = DummyVecEnv([lambda: env])
     model = PPO2(MlpPolicy, env, verbose=1)
-    model.learn(total_timesteps=200000)
+    model.learn(total_timesteps=9000000)
     logging.info("learn over")
     # ValidationRun(env_val,net,episodes= 1,device= device,epsilon= 0)
     obs = env.reset()

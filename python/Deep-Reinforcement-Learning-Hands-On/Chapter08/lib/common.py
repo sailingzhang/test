@@ -4,6 +4,7 @@ import numpy as np
 
 import torch
 import torch.nn as nn
+import logging
 
 
 class RewardTracker:
@@ -87,13 +88,13 @@ def unpack_batch(batch):
 
 def calc_loss_V(batch, net, tgt_net, gamma, device="cpu"):
     states, actions, rewards, dones, next_states = unpack_batch(batch)
-
     states_v = torch.tensor(states).to(device)
     #states_v = states
     next_states_v = torch.tensor(next_states).to(device)
     actions_v = torch.tensor(actions).to(device)
     rewards_v = torch.tensor(rewards).to(device)
     done_mask = torch.ByteTensor(dones).to(device)
+    # done_mask = torch.bool(dones).to(device)
 
     state_action_values = net(states_v).gather(1, actions_v.unsqueeze(-1)).squeeze(-1)
     next_state_actions = net(next_states_v).max(1)[1]

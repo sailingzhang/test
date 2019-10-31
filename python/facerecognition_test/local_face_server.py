@@ -339,8 +339,9 @@ def testEmb():
         eTime = time.time()
         logging.debug("step={},tensorflow end,costTime={}".format(step,eTime-bTime))
         step += 1
-        if 0 == step%3000:
+        if 0 == step%1000:
             logging.info("new one")
+            del faceEmd
             faceEmd = facenet_ebeding(work_dir+"/embed_model/20180402-114759.pb")
 
 

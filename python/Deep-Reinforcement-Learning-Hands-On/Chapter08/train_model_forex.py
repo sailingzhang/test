@@ -21,6 +21,7 @@ from gym import wrappers
 import ptan
 import argparse
 import numpy as np
+import json
 
 import torch
 import torch.optim as optim
@@ -37,13 +38,15 @@ TARGET_NET_SYNC = 1000
 DEFAULT_STOCKS = "data/YNDX_160101_161231.csv"
 DEFAULT_VAL_STOCKS = "data/YNDX_150101_151231.csv"
 
+
+
 FOREC_DATA="C:\mydata\develop\mygit\gym_trading\data\FOREX_EURUSD_1H_ASK.csv"
 
 GAMMA = 0.99
 
 REPLAY_SIZE = 100000
 REPLAY_INITIAL = 10000
-#REPLAY_INITIAL = 1000
+# REPLAY_INITIAL = 1000
 
 REWARD_STEPS = 2
 
@@ -56,12 +59,22 @@ EPSILON_START = 1.0
 EPSILON_STOP = 0.1
 EPSILON_STEPS = 1000000
 
-CHECKPOINT_EVERY_STEP = 1000000
-VALIDATION_EVERY_STEP = 100000
-# VALIDATION_EVERY_STEP = 1000
+# CHECKPOINT_EVERY_STEP = 1000000
+CHECKPOINT_EVERY_STEP = 10000
+
+# VALIDATION_EVERY_STEP = 100000
+VALIDATION_EVERY_STEP = 10000
 
 # FOREX_DATA_PATH="../../../../gym_trading/data/FOREX_EURUSD_1H_ASK.csv"
 FOREX_DATA_PATH="../../../../gym_trading/data/FOREX_EURUSD_1H_ASK_CLOSE.csv"
+
+
+
+P_TIMER_CHECK_DATA_FILE ="recent_train.data"
+P_MAX_MEAN_DATA_FILE ="max_mean.data"
+P_MAC_VALIDATE_DATA_FILE="max_validate.date"
+P_DATA_INFO_FILE ="data_info.json"
+
 
 def test2():
     logging.debug("enter")
@@ -76,6 +89,7 @@ def test2():
 def test():    
     print("fuck")
     logging.info("enter")
+    data_info_dict={}
     # return
     parser = argparse.ArgumentParser()
     parser.add_argument("--cuda", default=False, action="store_true", help="Enable cuda")
@@ -89,6 +103,8 @@ def test():
 
     saves_path = os.path.join("saves", args.run)
     os.makedirs(saves_path, exist_ok=True)
+
+
 
 
 
@@ -117,6 +133,10 @@ def test():
     writer = SummaryWriter(comment="-simple-" + args.run)
     # net = models.SimpleFFDQN(env.observation_space.shape[0], env.action_space.n).to(device)
     net = models.SimpleFFDQN_V(env.observation_space.shape[0], env.action_space.n).to(device)
+    check_data_file = os.path.join(saves_path,P_TIMER_CHECK_DATA_FILE)
+    if False == os.path.exists(check_data_file):
+        logging.error("load data file not exit:{}".format(check_data_file))
+    net.load_state_dict(torch.load(check_data_file))
 
     tgt_net = ptan.agent.TargetNet(net)
     selector = ptan.actions.EpsilonGreedyActionSelector(EPSILON_START)
@@ -158,7 +178,11 @@ def test():
                     if best_mean_val is not None:
                         logging.debug("%d: Best mean value updated %.3f -> %.3f" % (step_idx, best_mean_val, mean_val))
                     best_mean_val = mean_val
-                    torch.save(net.state_dict(), os.path.join(saves_path, "mean_val-%.3f.data" % mean_val))
+                    torch.save(net.state_dict(), os.path.join(saves_path, P_MAX_MEAN_DATA_FILE))
+                    data_info_dict["best_mean_val"]=best_mean_val
+                    with open(os.path.join(saves_path,P_DATA_INFO_FILE),"w") as f:
+                        json.dump(data_info_dict,f)
+                    logging.info("best_mean_val={}".format(best_mean_val))
 
             logging.debug("begin optimer,step_idx={}".format(step_idx))
             optimizer.zero_grad()
@@ -172,13 +196,22 @@ def test():
                 tgt_net.sync()
 
             if step_idx % CHECKPOINT_EVERY_STEP == 0:
-                logging.info("begin save,step_idx={}".format(step_idx))
-                idx = step_idx // CHECKPOINT_EVERY_STEP
-                torch.save(net.state_dict(), os.path.join(saves_path, "checkpoint-%3d.data" % idx))
+                # idx = step_idx // CHECKPOINT_EVERY_STEP
+                check_file = os.path.join(saves_path, P_TIMER_CHECK_DATA_FILE)
+                torch.save(net.state_dict(), check_file)
+                logging.info("save,step_idx={},file={}".format(step_idx,check_file))
+                return #test
 
             if step_idx % VALIDATION_EVERY_STEP == 0:
-                logging.info("begin valid,step_idx={}".format(step_idx))
-                ValidationRun(env_val,net,episodes= 1,device= device,epsilon= 0)
+                res = ValidationRun(env_val,net,episodes= 1,device= device,epsilon= 0)
+                data_info_dict["valid_rewards"]=res["episode_reward"]
+                with open(os.path.join(saves_path,P_DATA_INFO_FILE),"w") as f:
+                    json.dump(data_info_dict,f)
+                for key, val in res.items():
+                    writer.add_scalar(key + "_val", val, step_idx)
+                logging.info("valid,step_idx={},res={}".format(step_idx,res))
+
+
                 # res = validation.validation_run(env_tst, net, device=device)
                 # for key, val in res.items():
                 #     writer.add_scalar(key + "_test", val, step_idx)
