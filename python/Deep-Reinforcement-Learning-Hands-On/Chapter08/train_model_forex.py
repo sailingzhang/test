@@ -136,6 +136,7 @@ def test():
     check_data_file = os.path.join(saves_path,P_TIMER_CHECK_DATA_FILE)
     if False == os.path.exists(check_data_file):
         logging.error("load data file not exit:{}".format(check_data_file))
+        return
     net.load_state_dict(torch.load(check_data_file))
 
     tgt_net = ptan.agent.TargetNet(net)
