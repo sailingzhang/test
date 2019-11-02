@@ -1,10 +1,18 @@
 #!/usr/bin/env python3
 
 
+import os
 import sys
 # work_dir="C:\\mydata\\develop\\mygit"
 # work_dir= "/home/sailingzhang/develop/mygit"
-work_dir ="/home/sailingzhang/winshare/develop/source/mygit"
+# work_dir ="/home/sailingzhang/winshare/develop/source/mygit"
+
+work_dir = os.environ.get("WORK_DIR")
+if work_dir is None:
+    print("work_dir environment is None")
+    sys.exit()
+print("work_dir={}".format(work_dir))
+
 sys.path.append(work_dir)
 sys.path.append(work_dir+"\\test\\python")
 sys.path.append("../../")
@@ -15,14 +23,14 @@ from log_init import log_init
 
 logging.debug("load moundle")
 
-import os
+
 import gym
 from gym import wrappers
 import ptan
 import argparse
 import numpy as np
 import json
-
+import time
 import torch
 import torch.optim as optim
 
@@ -32,7 +40,8 @@ from tensorboardX import SummaryWriter
 from gym_trading.envs.forex_env import forex_candle_env,ValidationRun
 
 
-BATCH_SIZE = 32
+# BATCH_SIZE = 32
+BATCH_SIZE = 100
 BARS_COUNT = 10
 TARGET_NET_SYNC = 1000
 DEFAULT_STOCKS = "data/YNDX_160101_161231.csv"
@@ -151,9 +160,12 @@ def test():
     eval_states = None
     best_mean_val = None
     logging.debug("begin train")
+
+    timeCount={"t1t2_sum":0,"t1t2_num":0,"t2t3_sum":0,"t2t3_num":0}
     with common.RewardTracker(writer, np.inf, group_rewards=100) as reward_tracker:
         while True:
             step_idx += 1
+            t1 = time.time()
             if 0 == step_idx%1000:
                 logging.info("step_idx={}".format(step_idx))
             buffer.populate(1)
@@ -184,16 +196,21 @@ def test():
                     with open(os.path.join(saves_path,P_DATA_INFO_FILE),"w") as f:
                         json.dump(data_info_dict,f)
                     logging.info("best_mean_val={}".format(best_mean_val))
-
+            t2 = time.time()
+            timeCount["t1t2_sum"] += (t2-t1)
+            timeCount["t1t2_num"] += 1
             logging.debug("begin optimer,step_idx={}".format(step_idx))
             optimizer.zero_grad()
             batch = buffer.sample(BATCH_SIZE)
             loss_v = common.calc_loss_V(batch, net, tgt_net.target_model, GAMMA ** REWARD_STEPS, device=device)
             loss_v.backward()
             optimizer.step()
+            t3 = time.time()
+            timeCount["t2t3_sum"] += t3-t2
+            timeCount["t2t3_num"] += 1
 
             if step_idx % TARGET_NET_SYNC == 0:
-                logging.info("begin sync,step_idex={},loss={}".format(step_idx,loss_v))
+                logging.info("begin sync,step_idex={},av_t1t2={},av_t2t3={},loss={}".format(step_idx,timeCount["t1t2_sum"]/timeCount["t1t2_num"],timeCount["t2t3_sum"]/timeCount["t2t3_num"],loss_v))
                 tgt_net.sync()
 
             if step_idx % CHECKPOINT_EVERY_STEP == 0:
