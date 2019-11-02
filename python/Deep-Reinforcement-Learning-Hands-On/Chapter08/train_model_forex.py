@@ -245,7 +245,7 @@ def test():
 
 
 if __name__ == "__main__":
-    log_init("../../../../tmp/ch08_train_forex.log",'INFO')
+    log_init("../../../../tmp/ch08_train_forex_"+str(os.getpid())+".log",'INFO')
     logging.info("start")
     test()
     # test2()
