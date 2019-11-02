@@ -83,7 +83,19 @@ P_TIMER_CHECK_DATA_FILE ="recent_train.data"
 P_MAX_MEAN_DATA_FILE ="max_mean.data"
 P_MAC_VALIDATE_DATA_FILE="max_validate.date"
 P_DATA_INFO_FILE ="data_info.json"
+INIT_PARAMETER = False
 
+init_funcs = {
+    1: lambda x: torch.nn.init.normal_(x, mean=0., std=1.), # can be bias
+    2: lambda x: torch.nn.init.xavier_normal_(x, gain=1.), # can be weight
+    3: lambda x: torch.nn.init.xavier_uniform_(x, gain=1.), # can be conv1D filter
+    4: lambda x: torch.nn.init.xavier_uniform_(x, gain=1.), # can be conv2D filter
+    "default": lambda x: torch.nn.init.constant(x, 1.), # everything else
+}
+def init_all(model, init_funcs = init_funcs):
+    for p in model.parameters():
+        init_func = init_funcs.get(len(p.shape), init_funcs["default"])
+        init_func(p)
 
 def test2():
     logging.debug("enter")
@@ -143,10 +155,18 @@ def test():
     # net = models.SimpleFFDQN(env.observation_space.shape[0], env.action_space.n).to(device)
     net = models.SimpleFFDQN_V(env.observation_space.shape[0], env.action_space.n).to(device)
     check_data_file = os.path.join(saves_path,P_TIMER_CHECK_DATA_FILE)
+    if INIT_PARAMETER:
+        init_all(net)
+        torch.save(net.state_dict(), check_data_file)
+        logging.info("save,file={}".format(check_data_file))
+        sys.exit()
+
     if False == os.path.exists(check_data_file):
         logging.error("load data file not exit:{}".format(check_data_file))
         return
     net.load_state_dict(torch.load(check_data_file))
+
+
 
     tgt_net = ptan.agent.TargetNet(net)
     selector = ptan.actions.EpsilonGreedyActionSelector(EPSILON_START)
@@ -215,9 +235,8 @@ def test():
 
             if step_idx % CHECKPOINT_EVERY_STEP == 0:
                 # idx = step_idx // CHECKPOINT_EVERY_STEP
-                check_file = os.path.join(saves_path, P_TIMER_CHECK_DATA_FILE)
-                torch.save(net.state_dict(), check_file)
-                logging.info("save,step_idx={},file={}".format(step_idx,check_file))
+                torch.save(net.state_dict(), check_data_file)
+                logging.info("save,step_idx={},file={}".format(step_idx,check_data_file))
 
             if step_idx % VALIDATION_EVERY_STEP == 0:
                 res = ValidationRun(env_val,net,episodes= 1,device= device,epsilon= 0)
