@@ -118,8 +118,11 @@ def test():
     parser.add_argument("--year", type=int, help="Year to be used for training, if specified, overrides --data option")
     parser.add_argument("--valdata", default=DEFAULT_VAL_STOCKS, help="Stocks data for validation, default=" + DEFAULT_VAL_STOCKS)
     parser.add_argument("-r", "--run", required=True, help="Run name")
+    parser.add_argument("--pretype",required=True)
+    parser.add_argument("--init",default=False,help="just init")
     args = parser.parse_args()
     device = torch.device("cuda" if args.cuda else "cpu")
+    INIT_PARAMETER = args.init
     logging.info("device={}".format(device))
 
     saves_path = os.path.join("saves", args.run)
@@ -129,26 +132,11 @@ def test():
 
 
 
-    # if args.year is not None or os.path.isfile(args.data):
-    #     if args.year is not None:
-    #         stock_data = data.load_year_data(args.year)
-    #     else:
-    #         stock_data = {"YNDX": data.load_relative(args.data)}#run here by default argument
-    #     env = environ.StocksEnv(stock_data, bars_count=BARS_COUNT, reset_on_close=True, state_1d=False, volumes=False)
-    #     env_tst = environ.StocksEnv(stock_data, bars_count=BARS_COUNT, reset_on_close=True, state_1d=False)
-    # elif os.path.isdir(args.data):
-    #     env = environ.StocksEnv.from_dir(args.data, bars_count=BARS_COUNT, reset_on_close=True, state_1d=False)
-    #     env_tst = environ.StocksEnv.from_dir(args.data, bars_count=BARS_COUNT, reset_on_close=True, state_1d=False)
-    # else:
-    #     raise RuntimeError("No data to train on")
-    # env = gym.wrappers.TimeLimit(env, max_episode_steps=1000)
 
-    # val_data = {"YNDX": data.load_relative(args.valdata)}
-    # env_val = environ.StocksEnv(val_data, bars_count=BARS_COUNT, reset_on_close=True, state_1d=False)
 
     logging.debug("begin to load env")
-    env = forex_candle_env(FOREX_DATA_PATH, window_size=600,initCapitalPoint=2000,feePoint=20)
-    env_val = forex_candle_env(FOREX_DATA_PATH, window_size=600,initCapitalPoint=2000,feePoint=20)
+    env = forex_candle_env(FOREX_DATA_PATH, window_size=600,initCapitalPoint=2000,feePoint=20,preprocessType=args.pretype)
+    env_val = forex_candle_env(FOREX_DATA_PATH, window_size=600,initCapitalPoint=2000,feePoint=20,preprocessType=args.pretype)
     logging.info("env.observation_sapce={},env.action_space.n={}".format(env.observation_space,env.action_space.n))
 
     writer = SummaryWriter(comment="-simple-" + args.run)
@@ -156,7 +144,7 @@ def test():
     net = models.SimpleFFDQN_V(env.observation_space.shape[0], env.action_space.n).to(device)
     check_data_file = os.path.join(saves_path,P_TIMER_CHECK_DATA_FILE)
     if INIT_PARAMETER:
-        init_all(net)
+        # init_all(net)
         torch.save(net.state_dict(), check_data_file)
         logging.info("save,file={}".format(check_data_file))
         sys.exit()
