@@ -1,5 +1,20 @@
 import os
 import sys
+
+work_dir = os.environ.get("WORK_DIR")
+if work_dir is None:
+    print("work_dir environment is None")
+    sys.exit()
+print("work_dir={}".format(work_dir))
+sys.path.append(work_dir)
+sys.path.append(work_dir+"\\test\\python")
+
+from stable_baselines.common.policies import MlpPolicy
+from stable_baselines.common.vec_env import DummyVecEnv
+from stable_baselines import PPO2,DQN
+from gym_trading.envs.forex_env import forex_candle_env,ValidationRun
+
+
 import logging
 import torch
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
@@ -159,11 +174,24 @@ def calSet():
             if union & C == C:
                 logging.info("anser: combina={},len(combina)={},union={}".format(combina,len(combina),union))
                 # return
-            
-
+#############################################stable baseline test begin#####################################################################
+def baseLineLoadTest():
+    FOREX_DATA_PATH=work_dir+ "/gym_trading/data/FOREX_EURUSD_1H_ASK_CLOSE.csv"
+    env = forex_candle_env(FOREX_DATA_PATH, window_size=600,initCapitalPoint=2000,feePoint=20)
+    env = DummyVecEnv([lambda: env])
+    model = PPO2(MlpPolicy, env, verbose=1)
+    # model = DQN(MlpPolicy, env, verbose=1)
+    model.learn(total_timesteps=20000)
+    obs = env.reset()
+    for i in range(2000):
+        action, _states = model.predict(obs)
+        obs, rewards, done, info = env.step(action)
+        logging.debug("info={}".format(info))
+        # env.render() 
+#############################################stable baseline test end#####################################################################
 
 if __name__ == "__main__":
-    log_init("test.log")
+    log_init("test.log","DEBUG")
     # filterTest()
     # yieldtest()
     # gatherTest()
@@ -172,4 +200,5 @@ if __name__ == "__main__":
     # tenfortest()
     # classTest()
     # biasTest()
-    calSet()
+    # calSet()
+    baseLineLoadTest()
