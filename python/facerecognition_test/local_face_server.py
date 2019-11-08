@@ -42,7 +42,7 @@ import numpy as np
 import facenet
 from log import log_init
 import logging
-# import align.detect_face
+from align  import detect_face
 import random
 from time import sleep
 from io import BytesIO 
@@ -59,6 +59,9 @@ import threading
 import gc
 # import string
 import psutil
+
+import base64
+import requests
 
 # from mtcnnpytorch.src.detector import detect_faces,pytorchDetect
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
@@ -325,8 +328,13 @@ def test():
         return
 def testEmb():
     logging.info("loademb begin")
-    faceEmd = facenet_ebeding(work_dir+"/embed_model/20180402-114759.pb")
+    # faceEmd = facenet_ebeding(work_dir+"/embed_model/20180402-114759.pb")
+    # faceEmd = facenet_ebeding("/tmp/emdmodel/10001/saved_model.pb")
+    faceEmd = facenet_ebeding("/tmp/myemb.pb")
     logging.info("loademb end")
+    # faceEmd.sample_save("/tmp/emdmodel")
+    # detect_face.save_as_pb(faceEmd.sess,["embeddings"],"/tmp/myemb.pb")
+    # return
     # return
     datalist=[]
     for i in range(10):
@@ -339,10 +347,21 @@ def testEmb():
         eTime = time.time()
         logging.debug("step={},tensorflow end,costTime={}".format(step,eTime-bTime))
         step += 1
-        if 0 == step%1000:
-            logging.info("new one")
-            del faceEmd
-            faceEmd = facenet_ebeding(work_dir+"/embed_model/20180402-114759.pb")
+        # if 0 == step%1000:
+        #     logging.info("new one")
+        #     del faceEmd
+        #     faceEmd = facenet_ebeding(work_dir+"/embed_model/20180402-114759.pb")
+
+
+
+SERVER_URL = 'http://localhost:8501/v1/models/emdmodel:predict'
+IMAGE_URL = 'https://tensorflow.org/images/blogs/serving/cat.jpg'
+def tensorflwoServerTest():
+    img = imageio.imread("../../../../mygit/tmp/aligned/Bug/IMG-20181018-WA0034.png")
+    jpeg_bytes = base64.b64encode(img).decode('utf-8')
+    predict_request = '{"instances" : [{"b64": "%s"}]}' % jpeg_bytes
+    response = requests.post(SERVER_URL, data=predict_request)
+    logging.debug("response.content={}".format(response.content))
 
 
 def test_remoteserver():
@@ -370,11 +389,12 @@ def pytorch_test():
 
 if __name__ == '__main__':
     port = sys.argv[1]
-    log_init.log_init("/tmp/p_local_face_server_"+port+".log")
+    log_init.log_init("/tmp/p_local_face_server_"+port+".log",'DEBUG')
     logging.info("start gServer")
     # biastest()
     # pytorch_test()
     # test()
-    testEmb()
+    # testEmb()
     # threading.Thread(target=timer).start()
     # faceServe(port)
+    tensorflwoServerTest()

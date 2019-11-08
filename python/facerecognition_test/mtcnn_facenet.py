@@ -41,7 +41,7 @@ from facenet import facenet,align
 from log import log_init
 import logging
 
-import align.detect_face
+from align  import detect_face
 # from facenet import align
 
 
@@ -183,15 +183,45 @@ class facenet_ebeding:
         self.modelpath=modelpath
         self.emb =self.get_emb_img()
         # threading.Thread(target=facenet_ebeding.get_emb_img,args=(self,)).start()
+
+    # def get_emb_img(self):
+    #     with tf.Graph().as_default():
+    #         sess = tf.Session()
+    #         with sess.as_default():
+    #             logging.info("really loading emb")
+    #             facenet.load_model(self.modelpath)
+    #             images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
+    #             embeddings = tf.get_default_graph().get_tensor_by_name("embeddings:0")
+    #             phase_train_placeholder = tf.get_default_graph().get_tensor_by_name("phase_train:0")
+    #             def embed_base(aligned_img_list):
+    #                 logging.debug("begin embed,aligned_emd_list'len={}".format(len(aligned_img_list)))
+    #                 prewhitened_list =[]
+    #                 for i in range(len(aligned_img_list)):
+    #                     logging.debug("type(aligned_img[{}])={}".format(i,type(aligned_img_list[i])))
+    #                     prewhitened = facenet.prewhiten(aligned_img_list[i])
+    #                     prewhitened_list.append(prewhitened)
+    #                 prewhitened_stack = np.stack(prewhitened_list)
+
+    #                 feed_dict = { images_placeholder: prewhitened_stack, phase_train_placeholder:False }
+    #                 logging.debug("begin run embeddings")
+    #                 emb = sess.run(embeddings, feed_dict=feed_dict)
+    #                 logging.debug("end run embedding, type(emb)={},emb.shape={}".format(type(emb),emb.shape))
+    #                 return emb
+    #             self.emb = embed_base
+    #             tf.get_default_graph().finalize()
+    #             return embed_base
+
+
     def get_emb_img(self):
         with tf.Graph().as_default():
             sess = tf.Session()
             with sess.as_default():
                 logging.info("really loading emb")
                 facenet.load_model(self.modelpath)
-                images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
-                embeddings = tf.get_default_graph().get_tensor_by_name("embeddings:0")
-                phase_train_placeholder = tf.get_default_graph().get_tensor_by_name("phase_train:0")
+                self.sess = sess
+                # images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
+                # embeddings = tf.get_default_graph().get_tensor_by_name("embeddings:0")
+                # phase_train_placeholder = tf.get_default_graph().get_tensor_by_name("phase_train:0")
                 def embed_base(aligned_img_list):
                     logging.debug("begin embed,aligned_emd_list'len={}".format(len(aligned_img_list)))
                     prewhitened_list =[]
@@ -201,14 +231,15 @@ class facenet_ebeding:
                         prewhitened_list.append(prewhitened)
                     prewhitened_stack = np.stack(prewhitened_list)
 
-                    feed_dict = { images_placeholder: prewhitened_stack, phase_train_placeholder:False }
+                    feed_dict = { "input:0": prewhitened_stack, "phase_train:0":True }
                     logging.debug("begin run embeddings")
-                    emb = sess.run(embeddings, feed_dict=feed_dict)
+                    emb = sess.run("embeddings:0", feed_dict=feed_dict)
                     logging.debug("end run embedding, type(emb)={},emb.shape={}".format(type(emb),emb.shape))
                     return emb
                 self.emb = embed_base
-                tf.get_default_graph().finalize()
+                # tf.get_default_graph().finalize()
                 return embed_base
+
 
     def embed(self,aligned_img_list):
         # while self.emb is None:
@@ -225,6 +256,12 @@ class facenet_ebeding:
             img = imageio.imread(alined_img_paths[i])
             img_list.append(img)
         return self.emb(img_list)
+    def sample_save(self,model_path):
+        with self.sess.graph.as_default():
+            with self.sess.as_default():
+                images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
+                embeddings = tf.get_default_graph().get_tensor_by_name("embeddings:0")
+                tf.saved_model.simple_save(self.sess, model_path, inputs={'input:0': images_placeholder}, outputs={'embeddings:0': embeddings})
     
 
 
