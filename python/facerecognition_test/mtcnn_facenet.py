@@ -222,6 +222,7 @@ class facenet_ebeding:
                 # images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
                 # embeddings = tf.get_default_graph().get_tensor_by_name("embeddings:0")
                 # phase_train_placeholder = tf.get_default_graph().get_tensor_by_name("phase_train:0")
+                # tf.summary.FileWriter('graphlog1/', self.sess.graph)
                 def embed_base(aligned_img_list):
                     logging.debug("begin embed,aligned_emd_list'len={}".format(len(aligned_img_list)))
                     prewhitened_list =[]
@@ -230,6 +231,7 @@ class facenet_ebeding:
                         prewhitened = facenet.prewhiten(aligned_img_list[i])
                         prewhitened_list.append(prewhitened)
                     prewhitened_stack = np.stack(prewhitened_list)
+                    logging.debug("prewhitened_stack'shape={}".format(prewhitened_stack.shape))
 
                     feed_dict = { "input:0": prewhitened_stack, "phase_train:0":True }
                     logging.debug("begin run embeddings")
@@ -256,14 +258,85 @@ class facenet_ebeding:
             img = imageio.imread(alined_img_paths[i])
             img_list.append(img)
         return self.emb(img_list)
+
+    def build_save(self):
+        builder = tf.saved_model.builder.SavedModelBuilder("build_embsave")
+        # Tag the model, required for Go
+        builder.add_meta_graph_and_variables(self.sess, ["myTag"])
+        builder.save()
+
+
+
     def sample_save(self,model_path):
         with self.sess.graph.as_default():
             with self.sess.as_default():
                 images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
                 embeddings = tf.get_default_graph().get_tensor_by_name("embeddings:0")
                 tf.saved_model.simple_save(self.sess, model_path, inputs={'input:0': images_placeholder}, outputs={'embeddings:0': embeddings})
+    def write_graph(self):
+        summaryWriter = tf.summary.FileWriter('graphlog/', self.sess.graph)
     
 
+
+
+
+
+class facenet_ebeding_2:
+    def __init__(self,modelpath):
+        self.modelpath=modelpath
+        self.sess = tf.Session()
+        self.sess.as_default()
+        facenet.load_model(self.modelpath)
+
+    def embed_base(self,aligned_img_list):
+        logging.debug("begin embed,aligned_emd_list'len={}".format(len(aligned_img_list)))
+        prewhitened_list =[]
+        for i in range(len(aligned_img_list)):
+            logging.debug("type(aligned_img[{}])={}".format(i,type(aligned_img_list[i])))
+            prewhitened = facenet.prewhiten(aligned_img_list[i])
+            prewhitened_list.append(prewhitened)
+        prewhitened_stack = np.stack(prewhitened_list)
+        logging.debug("prewhitened_stack'shape={}".format(prewhitened_stack.shape))
+
+        feed_dict = { "input:0": prewhitened_stack, "phase_train:0":True }
+        logging.debug("begin run embeddings")
+        emb = self.sess.run("embeddings:0", feed_dict=feed_dict)
+        logging.debug("end run embedding, type(emb)={},emb.shape={}".format(type(emb),emb.shape))
+        return emb
+
+
+    def embed(self,aligned_img_list):
+        # while self.emb is None:
+        #     logging.info("loading emb,wait")
+        #     sleep(5)
+        return self.embed_base(aligned_img_list)
+    def embed_paths(self,alined_img_paths):
+        # while self.emb is None:
+        #     logging.info("loading emb,wait")
+        #     sleep(5)
+        img_list=[]
+        for i in range(len(alined_img_paths)):
+            logging.debug("begin read img={}".format(alined_img_paths[i]))
+            img = imageio.imread(alined_img_paths[i])
+            img_list.append(img)
+        return self.embed_base(img_list)
+
+    def build_save(self):
+        builder = tf.saved_model.builder.SavedModelBuilder("build_embsave")
+        # Tag the model, required for Go
+        builder.add_meta_graph_and_variables(self.sess, ["myTag"])
+        builder.save()
+
+
+
+    def sample_save(self,model_path):
+        with self.sess.graph.as_default():
+            with self.sess.as_default():
+                images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
+                embeddings = tf.get_default_graph().get_tensor_by_name("embeddings:0")
+                tf.saved_model.simple_save(self.sess, model_path, inputs={'input:0': images_placeholder}, outputs={'embeddings:0': embeddings})
+    def write_graph(self):
+        summaryWriter = tf.summary.FileWriter('graphlog/', self.sess.graph)
 
 
 

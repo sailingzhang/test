@@ -50,7 +50,7 @@ from PIL import Image, ImageFilter
 import imageio
 from scipy import misc
 # from myface.mtcnn_facenet import detectface,facenet_ebeding,myclassify,myclassify2,TvuFace
-from mtcnn_facenet import detectface,facenet_ebeding,myclassify,myclassify2,TvuFace
+from mtcnn_facenet import detectface,facenet_ebeding,myclassify,myclassify2,TvuFace,facenet_ebeding_2
 
 from classifier import NeurosFaceClassifier,NeurosFaceClassifierStd
 from sklearn.neighbors import KNeighborsClassifier 
@@ -61,7 +61,12 @@ import gc
 import psutil
 
 import base64
-import requests
+# import requests
+
+# from tensorflow_serving.apis import predict_pb2
+# from tensorflow_serving.apis import prediction_service_pb2_grpc
+
+import  predict_pb2,prediction_service_pb2_grpc,tensor_pb2
 
 # from mtcnnpytorch.src.detector import detect_faces,pytorchDetect
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
@@ -328,10 +333,14 @@ def test():
         return
 def testEmb():
     logging.info("loademb begin")
-    # faceEmd = facenet_ebeding(work_dir+"/embed_model/20180402-114759.pb")
+    
+    faceEmd = facenet_ebeding_2(work_dir+"/embed_model/20180402-114759.pb")
     # faceEmd = facenet_ebeding("/tmp/emdmodel/10001/saved_model.pb")
-    faceEmd = facenet_ebeding("/tmp/myemb.pb")
+    # faceEmd = facenet_ebeding("/tmp/myemb.pb")
     logging.info("loademb end")
+    # faceEmd.write_graph()
+    # return
+    # faceEmd.build_save()
     # faceEmd.sample_save("/tmp/emdmodel")
     # detect_face.save_as_pb(faceEmd.sess,["embeddings"],"/tmp/myemb.pb")
     # return
@@ -354,14 +363,42 @@ def testEmb():
 
 
 
+
+
+ALINE_PIC="../../../../mygit/tmp/aligned/Bug/IMG-20181018-WA0034.png"
 SERVER_URL = 'http://localhost:8501/v1/models/emdmodel:predict'
 IMAGE_URL = 'https://tensorflow.org/images/blogs/serving/cat.jpg'
 def tensorflwoServerTest():
-    img = imageio.imread("../../../../mygit/tmp/aligned/Bug/IMG-20181018-WA0034.png")
+    img = imageio.imread(ALINE_PIC)
     jpeg_bytes = base64.b64encode(img).decode('utf-8')
     predict_request = '{"instances" : [{"b64": "%s"}]}' % jpeg_bytes
     response = requests.post(SERVER_URL, data=predict_request)
     logging.debug("response.content={}".format(response.content))
+
+
+
+def tensorflwoServerTest2():
+    with open(ALINE_PIC, 'rb') as f:
+        data = f.read()
+    channel = grpc.insecure_channel("127.0.0.1:8500")
+    stub = prediction_service_pb2_grpc.PredictionServiceStub(channel)
+    # stub = predict_pb2_grpc.create(channel)
+    # Send request
+    # See prediction_service.proto for gRPC request/response details.
+    request = predict_pb2.PredictRequest()
+    request.model_spec.name = 'emdmodel'
+    # request.model_spec.signature_name = 'serving_default'
+    # data = np.zeros(shape=(1,160,160,3))
+    data = np.zeros(shape=(160*160*3))
+    # request.inputs['input'].CopyFrom(
+    #     tf.contrib.util.make_tensor_proto(data, shape=[1,160,160,3]))
+    tf.contrib.util.make_tensor_proto(data, shape=[1,160,160,3])
+    tensor = tensor_pb2.TensorProto()
+    # tensor.float_val.add()
+    request.inputs['input:0'].CopyFrom(tensor)
+    logging.info("begin predict")
+    result = stub.Predict(request, 10.0)  # 10 secs timeout
+    print(result)
 
 
 def test_remoteserver():
@@ -394,7 +431,8 @@ if __name__ == '__main__':
     # biastest()
     # pytorch_test()
     # test()
-    # testEmb()
+    testEmb()
     # threading.Thread(target=timer).start()
     # faceServe(port)
-    tensorflwoServerTest()
+    # tensorflwoServerTest()
+    # tensorflwoServerTest2()
