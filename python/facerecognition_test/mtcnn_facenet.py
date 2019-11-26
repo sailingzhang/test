@@ -41,7 +41,8 @@ from facenet import facenet,align
 from log import log_init
 import logging
 
-from align  import detect_face
+import align
+# from align  import detect_face
 # from facenet import align
 
 
