@@ -499,7 +499,8 @@ def create_tvu_mtcnn(sess,model_path):
     onet_fun = lambda img : sess.run((onet["conv6-2"], onet["conv6-3"], onet["prob1"]), feed_dict={'onet/input:0':img})
 
 #############################################################################################################################################################################
-    # builder = tf.saved_model.builder.SavedModelBuilder("mtcnn")
+    # export_path = os.path.join("mtcnnmodel","123")
+    # builder = tf.saved_model.builder.SavedModelBuilder(export_path)
 
     # pnetInputs = {'pnetInput': tf.saved_model.utils.build_tensor_info(pnet["data"])}
     # pnetOutputs = {'pnetOutputConv' : tf.saved_model.utils.build_tensor_info(pnet["conv4-2"]),'pnetOutputProb' : tf.saved_model.utils.build_tensor_info(pnet["prob1"])}
@@ -632,9 +633,9 @@ class mtcnnClinet():
         return rsp
 
 
-mtPnetClient = mtcnnClinet("http://localhost:8501/v1/models/mtcnn:predict","pnetSignature")
-mtRnetClient = mtcnnClinet("http://localhost:8501/v1/models/mtcnn:predict","rnetSignature")
-mtOnetClient = mtcnnClinet("http://localhost:8501/v1/models/mtcnn:predict","onetSignature")
+mtPnetClient = mtcnnClinet("http://localhost:8501/v1/models/mtcnnmodel:predict","pnetSignature")
+mtRnetClient = mtcnnClinet("http://localhost:8501/v1/models/mtcnnmodel:predict","rnetSignature")
+mtOnetClient = mtcnnClinet("http://localhost:8501/v1/models/mtcnnmodel:predict","onetSignature")
 def detect_face(img, minsize, pnet, rnet, onet, threshold, factor):
     """Detects faces in an image, and returns bounding boxes and points for them.
     img: input image

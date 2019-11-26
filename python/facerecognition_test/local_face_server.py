@@ -66,7 +66,7 @@ import base64
 # from tensorflow_serving.apis import predict_pb2
 # from tensorflow_serving.apis import prediction_service_pb2_grpc
 
-import  predict_pb2,prediction_service_pb2_grpc,tensor_pb2
+# import  predict_pb2,prediction_service_pb2_grpc,tensor_pb2
 
 # from mtcnnpytorch.src.detector import detect_faces,pytorchDetect
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
@@ -426,7 +426,7 @@ def pytorch_test():
 
 if __name__ == '__main__':
     port = sys.argv[1]
-    log_init.log_init("/tmp/p_local_face_server_"+port+".log",'INFO')
+    log_init.log_init("/tmp/p_local_face_server_"+port+".log",'DEBUG')
     logging.info("start gServer")
     # biastest()
     # pytorch_test()
