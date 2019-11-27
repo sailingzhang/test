@@ -712,9 +712,9 @@ def detect_face(img, minsize, pnet, rnet, onet, threshold, factor):
                 return np.empty()
         tempimg = (tempimg-127.5)*0.0078125
         tempimg1 = np.transpose(tempimg, (3,1,0,2))
-        logging.info("rnet input'shape={}".format(tempimg1.shape))
+        logging.info("rnet input'shape={},type(input)={},dtype={}".format(tempimg1.shape,type(tempimg1),tempimg1.dtype))
         # out = rnet(tempimg1)
-        out = mtRnetClient.rnet(tempimg)
+        out = mtRnetClient.rnet(tempimg1)
         out0 = np.transpose(out[0])
         out1 = np.transpose(out[1])
         score = out1[1,:]
