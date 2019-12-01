@@ -324,13 +324,13 @@ def test():
         logging.debug("tensorflow begin")
         boxs = detect.defect_path("pic/test.jpg")
         eTime = time.time()
-        logging.debug("tensorflow end,costTime={}".format(eTime-bTime))
-        logging.info("len(boxs)={},boxs={}".format(len(boxs),boxs))
+        # logging.info("tensorflow end,costTime={}".format(eTime-bTime))
+        logging.info("len(boxs)={},boxs={},costtime={}".format(len(boxs),boxs,eTime-bTime))
         for j in range(boxs.shape[0]):
             BoxWidth = int(boxs[j][2] -boxs[j][0])
             BoxHeight = int(boxs[j][3] -boxs[j][1])
             logging.debug("width={},height={}".format(BoxWidth,BoxHeight))
-        return
+        # return
 def testEmb():
     logging.info("loademb begin")
     
@@ -426,7 +426,7 @@ def pytorch_test():
 
 if __name__ == '__main__':
     port = sys.argv[1]
-    log_init.log_init("/tmp/p_local_face_server_"+port+".log",'DEBUG')
+    log_init.log_init("/tmp/p_local_face_server_"+port+".log",'INFO')
     logging.info("start gServer")
     # biastest()
     # pytorch_test()
