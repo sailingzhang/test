@@ -178,6 +178,8 @@ class detectface:
         # misc.imsave("cropped.jpg", scaled)
         return scaled
 
+
+
         
 class facenet_ebeding:
     def __init__(self,modelpath):

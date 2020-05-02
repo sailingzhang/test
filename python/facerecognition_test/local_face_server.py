@@ -331,6 +331,9 @@ def test():
             BoxHeight = int(boxs[j][3] -boxs[j][1])
             logging.debug("width={},height={}".format(BoxWidth,BoxHeight))
         # return
+def exportmtcnn():
+    detect = detectface()
+    detect_face.save_as_pb(detect.sess,['pnet/conv4-2/BiasAdd','pnet/prob1','rnet/conv5-2/conv5-2','rnet/prob1','onet/conv6-2/conv6-2','onet/conv6-3/conv6-3','onet/prob1'],"/tmp/mymtcnn.pb")
 def testEmb():
     logging.info("loademb begin")
     
@@ -342,7 +345,7 @@ def testEmb():
     # return
     # faceEmd.build_save()
     # faceEmd.sample_save("/tmp/emdmodel")
-    # detect_face.save_as_pb(faceEmd.sess,["embeddings"],"/tmp/myemb.pb")
+    detect_face.save_as_pb(faceEmd.sess,["embeddings"],"/tmp/myemb.pb")
     # return
     # return
     datalist=[]
@@ -430,9 +433,10 @@ if __name__ == '__main__':
     logging.info("start gServer")
     # biastest()
     # pytorch_test()
-    test()
+    # test()
     # testEmb()
     # threading.Thread(target=timer).start()
     # faceServe(port)
     # tensorflwoServerTest()
     # tensorflwoServerTest2()
+    exportmtcnn()

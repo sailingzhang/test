@@ -598,44 +598,44 @@ def creat_mtcnn_pytorch(model_path):
 
 
 
-import sys
-sys.path.append("/home/sailingzhang/winshare/develop/source/mygit/cactus/cactusPython")
-import tensorClient
+# import sys
+# sys.path.append("/home/sailingzhang/winshare/develop/source/mygit/cactus/cactusPython")
+# import tensorClient
 
-class mtcnnClinet():
-    def __init__(self,addr,signature):
-        self.client = tensorClient.TfServingHttpClient(addr,signature)
-        pass
-    def pnet(self,img):
-        rsp=[]
-        req ={}
-        req["pnetInput"]=img
-        rspmap= self.client.ColPredict(req)
-        rsp.append(rspmap["pnetOutputConv"])
-        rsp.append(rspmap["pnetOutputProb"])
-        return rsp
-    def rnet(self,img):
-        rsp=[]
-        req ={}
-        req["rnetInput"]=img
-        rspmap= self.client.ColPredict(req)
-        rsp.append(rspmap["rnetOutputConv"])
-        rsp.append(rspmap["rnetOutputProb"])
-        return rsp
-    def onet(self,img):
-        rsp=[]
-        req ={}
-        req["onetInput"]=img
-        rspmap= self.client.ColPredict(req)
-        rsp.append(rspmap["onetOutputConv1"])
-        rsp.append(rspmap["onetOutputConv2"])
-        rsp.append(rspmap["onetOutputProb"])
-        return rsp
+# class mtcnnClinet():
+#     def __init__(self,addr,signature):
+#         self.client = tensorClient.TfServingHttpClient(addr,signature)
+#         pass
+#     def pnet(self,img):
+#         rsp=[]
+#         req ={}
+#         req["pnetInput"]=img
+#         rspmap= self.client.ColPredict(req)
+#         rsp.append(rspmap["pnetOutputConv"])
+#         rsp.append(rspmap["pnetOutputProb"])
+#         return rsp
+#     def rnet(self,img):
+#         rsp=[]
+#         req ={}
+#         req["rnetInput"]=img
+#         rspmap= self.client.ColPredict(req)
+#         rsp.append(rspmap["rnetOutputConv"])
+#         rsp.append(rspmap["rnetOutputProb"])
+#         return rsp
+#     def onet(self,img):
+#         rsp=[]
+#         req ={}
+#         req["onetInput"]=img
+#         rspmap= self.client.ColPredict(req)
+#         rsp.append(rspmap["onetOutputConv1"])
+#         rsp.append(rspmap["onetOutputConv2"])
+#         rsp.append(rspmap["onetOutputProb"])
+#         return rsp
 
 
-mtPnetClient = mtcnnClinet("http://localhost:8501/v1/models/mtcnnmodel:predict","pnetSignature")
-mtRnetClient = mtcnnClinet("http://localhost:8501/v1/models/mtcnnmodel:predict","rnetSignature")
-mtOnetClient = mtcnnClinet("http://localhost:8501/v1/models/mtcnnmodel:predict","onetSignature")
+# mtPnetClient = mtcnnClinet("http://localhost:8501/v1/models/mtcnnmodel:predict","pnetSignature")
+# mtRnetClient = mtcnnClinet("http://localhost:8501/v1/models/mtcnnmodel:predict","rnetSignature")
+# mtOnetClient = mtcnnClinet("http://localhost:8501/v1/models/mtcnnmodel:predict","onetSignature")
 def detect_face(img, minsize, pnet, rnet, onet, threshold, factor):
     """Detects faces in an image, and returns bounding boxes and points for them.
     img: input image
@@ -669,8 +669,8 @@ def detect_face(img, minsize, pnet, rnet, onet, threshold, factor):
         img_x = np.expand_dims(im_data, 0)
         img_y = np.transpose(img_x, (0,2,1,3))
         logging.info("pnet input'shape ={}".format(img_y.shape))
-        # out = pnet(img_y)
-        out = mtPnetClient.pnet(img_y)
+        out = pnet(img_y)
+        # out = mtPnetClient.pnet(img_y)
         logging.debug("out[0].shape={},out[1].shape={}".format(out[0].shape,out[1].shape))
         out0 = np.transpose(out[0], (0,2,1,3))
         out1 = np.transpose(out[1], (0,2,1,3))
@@ -713,8 +713,8 @@ def detect_face(img, minsize, pnet, rnet, onet, threshold, factor):
         tempimg = (tempimg-127.5)*0.0078125
         tempimg1 = np.transpose(tempimg, (3,1,0,2))
         logging.info("rnet input'shape={},type(input)={},dtype={}".format(tempimg1.shape,type(tempimg1),tempimg1.dtype))
-        # out = rnet(tempimg1)
-        out = mtRnetClient.rnet(tempimg1)
+        out = rnet(tempimg1)
+        # out = mtRnetClient.rnet(tempimg1)
         out0 = np.transpose(out[0])
         out1 = np.transpose(out[1])
         score = out1[1,:]
@@ -743,8 +743,8 @@ def detect_face(img, minsize, pnet, rnet, onet, threshold, factor):
         tempimg = (tempimg-127.5)*0.0078125
         tempimg1 = np.transpose(tempimg, (3,1,0,2))
         logging.info("onet input'shape={}".format(tempimg1.shape))
-        # out = onet(tempimg1)
-        out = mtOnetClient.onet(tempimg1)
+        out = onet(tempimg1)
+        # out = mtOnetClient.onet(tempimg1)
         out0 = np.transpose(out[0])
         out1 = np.transpose(out[1])
         out2 = np.transpose(out[2])
