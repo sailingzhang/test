@@ -1,13 +1,13 @@
 import os
 import sys
 
-work_dir = os.environ.get("WORK_DIR")
-if work_dir is None:
-    print("work_dir environment is None")
-    sys.exit()
-print("work_dir={}".format(work_dir))
-sys.path.append(work_dir)
-sys.path.append(work_dir+"\\test\\python")
+# work_dir = os.environ.get("WORK_DIR")
+# if work_dir is None:
+#     print("work_dir environment is None")
+#     sys.exit()
+# print("work_dir={}".format(work_dir))
+# sys.path.append(work_dir)
+# sys.path.append(work_dir+"\\test\\python")
 
 from stable_baselines.common.policies import MlpPolicy
 from stable_baselines.common.vec_env import DummyVecEnv
@@ -30,6 +30,8 @@ import torch.backends.cudnn as cudnn
 import torch.nn.init as init
 import argparse
 import torch.autograd.variable as variable
+
+import tensorflow as tf
 
 
 
@@ -188,7 +190,13 @@ def baseLineLoadTest():
         obs, rewards, done, info = env.step(action)
         logging.debug("info={}".format(info))
         # env.render() 
-#############################################stable baseline test end#####################################################################
+#############################################videw effiectdet#####################################################################
+
+
+def view_effiect_bykaras():
+    new_model = tf.keras.models.load_model('/home/sailingzhang/tmp/myraccoon_savemodel')
+    new_model.summary()
+
 
 if __name__ == "__main__":
     log_init("test.log","DEBUG")
@@ -201,4 +209,5 @@ if __name__ == "__main__":
     # classTest()
     # biasTest()
     # calSet()
-    baseLineLoadTest()
+    # baseLineLoadTest()
+    view_effiect_bykaras()
