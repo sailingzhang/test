@@ -6,7 +6,7 @@ entrypoints==0.2.2
 gym==0.8.1
 html5lib==0.999
 ipykernel==4.6.1
-ipython==6.0.0
+ipython==7.16.3
 ipython-genutils==0.2.0
 Jinja2==2.9.6
 jsonschema==2.6.0
